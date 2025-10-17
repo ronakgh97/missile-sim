@@ -38,6 +38,6 @@ impl GuidanceLaw for PureProportionalNavigation {
     }
 
     fn name(&self) -> &str {
-        "Pure Proportional Navigation"
+        "PPN"
     }
 }

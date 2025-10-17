@@ -49,6 +49,6 @@ impl GuidanceLaw for TrueProportionalNavigation {
     }
 
     fn name(&self) -> &str {
-        "True Proportional Navigation"
+        "TPN"
     }
 }
