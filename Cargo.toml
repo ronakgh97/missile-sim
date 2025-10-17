@@ -1,0 +1,16 @@
+[package]
+name = "missile-sim"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+name = "missile_sim"
+path = "src/lib.rs"
+
+[[bin]]
+name = "missile-sim"
+path = "src/main.rs"
+
+[dependencies]
+plotters = "0.3.7"
+nalgebra = "0.34.1"
