@@ -20,7 +20,7 @@ visualizing the results through 3D plots, performance metrics and generate data 
 ## Testing the Simulation
 
    ```bash
-   git clone https://github.com/yourusername/missile-sim.git
+   git clone https://github.com/ronakgh97/missile-sim.git
    cd missile-sim
    cargo build --release
    cargo run --release
