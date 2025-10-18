@@ -20,7 +20,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         println!(" Scenario: {}", scenario.name);
 
         for guidance in &guidance_laws {
-            print!("    Testing {}... ", guidance.name());
+            print!("    Testing {} ", guidance.name());
 
             // Create engine and run simulation
             let mut engine = scenario.to_engine();
@@ -36,6 +36,11 @@ fn main() -> Result<(), Box<dyn Error>> {
 
             let _metric_files =
                 renderer.render_metrics(&metrics, &scenario.name, guidance.name(), &config)?;
+
+            let data_dir = config.data_dir();
+            metrics.export_csv(&scenario.name, guidance.name(), &data_dir)?;
+            metrics.export_metadata(&scenario.name, guidance.name(), &data_dir, scenario.dt)?;
+            metrics.export_summary(&scenario.name, guidance.name(), &data_dir)?;
 
             println!("{}", metrics.console_print());
             //println!("  Trajectory plot: {}", traj_file);
