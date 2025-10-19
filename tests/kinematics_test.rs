@@ -1,6 +1,5 @@
-
-use nalgebra::Vector3;
 use missile_sim::prelude::{calculate_closing_speed, calculate_los_rate};
+use nalgebra::Vector3;
 
 #[test]
 fn test_calculate_closing_speed_head_on() {
@@ -9,7 +8,8 @@ fn test_calculate_closing_speed_head_on() {
     let target_pos = Vector3::new(1000.0, 0.0, 0.0);
     let target_vel = Vector3::new(0.0, 0.0, 0.0);
 
-    let closing_speed = calculate_closing_speed(&missile_pos, &missile_vel, &target_pos, &target_vel);
+    let closing_speed =
+        calculate_closing_speed(&missile_pos, &missile_vel, &target_pos, &target_vel);
     assert!((closing_speed - 100.0).abs() < 1e-6);
 }
 
@@ -20,7 +20,8 @@ fn test_calculate_closing_speed_overtake() {
     let target_pos = Vector3::new(1000.0, 0.0, 0.0);
     let target_vel = Vector3::new(50.0, 0.0, 0.0);
 
-    let closing_speed = calculate_closing_speed(&missile_pos, &missile_vel, &target_pos, &target_vel);
+    let closing_speed =
+        calculate_closing_speed(&missile_pos, &missile_vel, &target_pos, &target_vel);
     assert!((closing_speed - 50.0).abs() < 1e-6);
 }
 
@@ -31,7 +32,8 @@ fn test_calculate_closing_speed_moving_apart() {
     let target_pos = Vector3::new(1000.0, 0.0, 0.0);
     let target_vel = Vector3::new(150.0, 0.0, 0.0);
 
-    let closing_speed = calculate_closing_speed(&missile_pos, &missile_vel, &target_pos, &target_vel);
+    let closing_speed =
+        calculate_closing_speed(&missile_pos, &missile_vel, &target_pos, &target_vel);
     assert!((closing_speed - (-50.0)).abs() < 1e-6);
 }
 

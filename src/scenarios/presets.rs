@@ -4,18 +4,18 @@ use nalgebra::Vector3;
 
 pub fn load_preset_scenarios() -> Vec<Scenario> {
     vec![
-        tail_chase(),
-        vtol_urban_strike(),
-        jet_head_on_intercept(),
-        ground_attack_intercept(),
-        spiral_evasion(),
-        terrain_hugging_chase(),
-        hypersonic_missile_intercept(),
-        cinematic_perpendicular(),
+        test_0(),
+        test_1(),
+        test_2(),
+        test_3(),
+        test_4(),
+        test_5(),
+        test_6(),
+        test_7(),
     ]
 }
 
-fn tail_chase() -> Scenario {
+fn test_0() -> Scenario {
     ScenarioBuilder::new("Perpendicular-Intercept")
         .missile_config(MissileConfig {
             position: Vector3::new(500.0, 0.0, 0.0),
@@ -34,7 +34,7 @@ fn tail_chase() -> Scenario {
         .build()
 }
 
-fn vtol_urban_strike() -> Scenario {
+fn test_1() -> Scenario {
     ScenarioBuilder::new("VTOL-Urban-Strike")
         .missile_config(MissileConfig {
             position: Vector3::new(-800.0, 50.0, 0.0),
@@ -53,7 +53,7 @@ fn vtol_urban_strike() -> Scenario {
         .build()
 }
 
-fn jet_head_on_intercept() -> Scenario {
+fn test_2() -> Scenario {
     ScenarioBuilder::new("Jet-Head-On-Intercept")
         .missile_config(MissileConfig {
             position: Vector3::new(0.0, 0.0, 1000.0),
@@ -72,7 +72,7 @@ fn jet_head_on_intercept() -> Scenario {
         .build()
 }
 
-fn ground_attack_intercept() -> Scenario {
+fn test_3() -> Scenario {
     ScenarioBuilder::new("Ground-Attack-Intercept")
         .missile_config(MissileConfig {
             position: Vector3::new(-2000.0, 0.0, 500.0),
@@ -91,7 +91,7 @@ fn ground_attack_intercept() -> Scenario {
         .build()
 }
 
-fn spiral_evasion() -> Scenario {
+fn test_4() -> Scenario {
     ScenarioBuilder::new("Spiral-Evasion")
         .missile_config(MissileConfig {
             position: Vector3::new(0.0, 0.0, 0.0),
@@ -110,7 +110,7 @@ fn spiral_evasion() -> Scenario {
         .build()
 }
 
-fn terrain_hugging_chase() -> Scenario {
+fn test_5() -> Scenario {
     ScenarioBuilder::new("Terrain-Hugging-Chase")
         .missile_config(MissileConfig {
             position: Vector3::new(-500.0, 0.0, 250.0),
@@ -129,7 +129,7 @@ fn terrain_hugging_chase() -> Scenario {
         .build()
 }
 
-fn hypersonic_missile_intercept() -> Scenario {
+fn test_6() -> Scenario {
     ScenarioBuilder::new("Hypersonic-Intercept")
         .missile_config(MissileConfig {
             position: Vector3::new(0.0, 0.0, 2000.0),
@@ -148,7 +148,7 @@ fn hypersonic_missile_intercept() -> Scenario {
         .build()
 }
 
-fn cinematic_perpendicular() -> Scenario {
+fn test_7() -> Scenario {
     ScenarioBuilder::new("Cinematic-Perpendicular")
         .missile_config(MissileConfig {
             position: Vector3::new(-3000.0, 0.0, 500.0),

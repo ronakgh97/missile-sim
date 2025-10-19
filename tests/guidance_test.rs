@@ -1,5 +1,5 @@
-use nalgebra::Vector3;
 use missile_sim::prelude::*;
+use nalgebra::Vector3;
 
 #[test]
 fn test_ppn_guidance() {
@@ -33,7 +33,7 @@ fn test_ppn_guidance() {
     );
     let expected_mag = missile.navigation_constant * missile.state.speed() * los_rate.norm();
     let bounded_mag = expected_mag.min(missile.max_acceleration);
-    
+
     assert!((acceleration.norm() - bounded_mag).abs() < 1e-6);
 }
 
@@ -77,6 +77,6 @@ fn test_tpn_guidance() {
 
     let expected_mag = missile.navigation_constant * safe_closing_speed * los_rate.norm();
     let bounded_mag = expected_mag.min(missile.max_acceleration);
-    
+
     assert!((acceleration.norm() - bounded_mag).abs() < 1e-6);
 }

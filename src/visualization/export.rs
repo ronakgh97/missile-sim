@@ -61,10 +61,10 @@ impl SimulationMetrics {
         guidance_name: &str,
         output_dir: &str,
     ) -> Result<String, Box<dyn std::error::Error>> {
-        let dir = format!("{}/csv", output_dir);
+        let dir = format!("{output_dir}/csv");
         fs::create_dir_all(&dir)?;
 
-        let filename = format!("{}/{}_{}.csv", dir, scenario_name, guidance_name);
+        let filename = format!("{dir}/{scenario_name}_{guidance_name}.csv");
         let mut file = File::create(&filename)?;
 
         // Write CSV header
@@ -107,7 +107,7 @@ impl SimulationMetrics {
         output_dir: &str,
         dt: f64,
     ) -> Result<String, Box<dyn std::error::Error>> {
-        let dir = format!("{}/json", output_dir);
+        let dir = format!("{output_dir}/json");
         fs::create_dir_all(&dir)?;
 
         let data_points = self.build_data_points();
@@ -135,7 +135,7 @@ impl SimulationMetrics {
             dt,
         };
 
-        let filename = format!("{}/{}_{}.json", dir, scenario_name, guidance_name);
+        let filename = format!("{dir}/{scenario_name}_{guidance_name}.json");
         let json = serde_json::to_string_pretty(&metadata)?;
         fs::write(&filename, json)?;
 
@@ -149,7 +149,7 @@ impl SimulationMetrics {
         guidance_name: &str,
         output_dir: &str,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        let filename = format!("{}/summary.csv", output_dir);
+        let filename = format!("{output_dir}/summary.csv");
         let path = Path::new(&filename);
 
         // Create header if file doesn't exist
