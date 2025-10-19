@@ -1,5 +1,5 @@
-use nalgebra::Vector3;
 use missile_sim::prelude::*;
+use nalgebra::Vector3;
 
 #[test]
 fn test_simulation_engine_hit() {
