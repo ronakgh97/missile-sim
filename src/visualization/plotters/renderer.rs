@@ -21,8 +21,8 @@ impl Renderer for PlottersRenderer {
         let dir = config.trajectory_output_path(scenario_name);
         fs::create_dir_all(&dir)?;
 
-        let filename = format!("{}/{}_trajectory.png", dir, guidance_name);
-        let title = format!("{} - {}", scenario_name, guidance_name);
+        let filename = format!("{dir}/{guidance_name}_trajectory.png");
+        let title = format!("{scenario_name} - {guidance_name}");
 
         super::trajectory_3d::plot_3d_trajectory(
             metrics,
@@ -45,7 +45,7 @@ impl Renderer for PlottersRenderer {
         let dir = config.metrics_dir(scenario_name);
         fs::create_dir_all(&dir)?;
 
-        let base_name = format!("{}/{}", dir, guidance_name);
+        let base_name = format!("{dir}/{guidance_name}");
 
         super::charts::plot_all_metrics(
             metrics,

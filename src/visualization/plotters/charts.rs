@@ -48,7 +48,7 @@ pub fn plot_all_metrics(
     let time = &metrics.time_history;
 
     // LOS Rate
-    let filename = format!("{}_los_rate.png", base_name);
+    let filename = format!("{base_name}_los_rate.png");
     plot_metric_chart(
         time,
         &metrics.los_rate_history,
@@ -61,7 +61,7 @@ pub fn plot_all_metrics(
     output_files.push(filename);
 
     // Distance
-    let filename = format!("{}_distance.png", base_name);
+    let filename = format!("{base_name}_distance.png");
     plot_metric_chart(
         time,
         &metrics.distance_history,
@@ -74,7 +74,7 @@ pub fn plot_all_metrics(
     output_files.push(filename);
 
     // Acceleration
-    let filename = format!("{}_acceleration.png", base_name);
+    let filename = format!("{base_name}_acceleration.png");
     plot_metric_chart(
         time,
         &metrics.acceleration_history,
@@ -87,7 +87,7 @@ pub fn plot_all_metrics(
     output_files.push(filename);
 
     // Closing Speed
-    let filename = format!("{}_closing_speed.png", base_name);
+    let filename = format!("{base_name}_closing_speed.png");
     plot_metric_chart(
         time,
         &metrics.closing_speed_history,

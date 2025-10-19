@@ -39,7 +39,7 @@ pub fn plot_3d_trajectory(
 
     // Build plot
     let mut chart = ChartBuilder::on(&root)
-        .caption(&format!("{}", title), ("Lucida Console", 40))
+        .caption(title, ("Lucida Console", 40))
         .margin(15)
         .build_cartesian_3d(min_x..max_x, min_z..max_z, min_y..max_y)?;
 
@@ -61,7 +61,7 @@ pub fn plot_3d_trajectory(
             &RED.mix(0.8),
         ))?
         .label("Missile")
-        .legend(|(x, y)| PathElement::new(vec![(x, y), (x + 20, y)], &RED));
+        .legend(|(x, y)| PathElement::new(vec![(x, y), (x + 20, y)], RED));
 
     // Missile start position
     if let Some(start) = metrics.missile_trajectory.first() {
@@ -113,7 +113,7 @@ pub fn plot_3d_trajectory(
             &BLUE.mix(0.8),
         ))?
         .label("Target")
-        .legend(|(x, y)| PathElement::new(vec![(x, y), (x + 20, y)], &BLUE));
+        .legend(|(x, y)| PathElement::new(vec![(x, y), (x + 20, y)], BLUE));
 
     // Target start position (blue filled circle)
     if let Some(start) = metrics.target_trajectory.first() {
@@ -186,8 +186,8 @@ pub fn plot_3d_trajectory(
     // Configure legend
     chart
         .configure_series_labels()
-        .background_style(&WHITE.mix(0.8))
-        .border_style(&BLACK)
+        .background_style(WHITE.mix(0.8))
+        .border_style(BLACK)
         .label_font(("sans-serif", 20))
         .draw()?;
 
