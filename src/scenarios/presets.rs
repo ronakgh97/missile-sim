@@ -19,13 +19,13 @@ fn test_0() -> Scenario {
     ScenarioBuilder::new("Perpendicular-Intercept")
         .missile_config(MissileConfig {
             position: Vector3::new(500.0, 0.0, 0.0),
-            velocity: Vector3::new(0.0, 0.0, 700.0),
+            velocity: Vector3::new(0.0, 700.0, 0.0),
             max_acceleration: 1200.0,
             navigation_constant: 4.0,
             max_closing_speed: 800.0,
         })
         .target_config(TargetConfig {
-            position: Vector3::new(-5000.0, 0.0, 2000.0),
+            position: Vector3::new(-5000.0, 2000.0, 0.0),
             velocity: Vector3::new(500.0, 0.0, 0.0),
         })
         .dt(0.0001) // 1000 Hz update rate
