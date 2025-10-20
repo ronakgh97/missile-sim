@@ -39,34 +39,45 @@ visualizing the results through 3D plots, performance metrics and generate data 
 
 The simulation includes several preset scenarios, each with unique missile and target configurations:
 
-![Demo_1](Hypersonic-Intercept_PPN_3d_trajectory.png)![Demo_2](Perpendicular-Intercept_TPN_3d_trajectory.png)
-![Demo_1-los_rate](PPN_los_rate.png)![Demo_2-los_rate](TPN_los_rate.png)
+![Demo_1](PPN_trajectory.png)
+![Demo_2](TPN_trajectory.png)
 
 ### Predefined Scenarios
 
 ```rust
 pub fn load_preset_scenarios() -> Vec<Scenario> {
     vec![
-        tail_chase(),
-        vtol_urban_strike(),
-        jet_head_on_intercept(),
-        ground_attack_intercept(),
-        spiral_evasion(),
-        terrain_hugging_chase(),
-        hypersonic_missile_intercept(),
-        cinematic_perpendicular(),
+        test_0(),
+        test_1(),
+        test_2(),
+        test_3(),
+        test_4(),
+        test_5(),
+        test_6(),
+        test_7(),
     ]
+}
+
+fn test_0() -> Scenario {
+    ScenarioBuilder::new("Perpendicular-Intercept")
+        .missile_config(MissileConfig {
+            position: Vector3::new(500.0, 0.0, 0.0),
+            velocity: Vector3::new(0.0, 700.0, 0.0),
+            max_acceleration: 1200.0,
+            navigation_constant: 4.0,
+            max_closing_speed: 800.0,
+        })
+        .target_config(TargetConfig {
+            position: Vector3::new(-5000.0, 2000.0, 0.0),
+            velocity: Vector3::new(500.0, 0.0, 0.0),
+        })
+        .dt(0.0001) // 1000 Hz update rate
+        .total_time(30.0)
+        .hit_threshold(5.0)
+        .build()
 }
 ```
 
-- **Perpendicular Intercept**: Classic tail chase scenario.
-- **VTOL-Urban-Strike**: Missile launched from a rooftop against an evasive helicopter.
-- **Jet-Head-On-Intercept**: High-altitude intercept of an incoming supersonic jet.
-- **Ground-Attack-Intercept**: Anti-aircraft missile defending against a diving bomber.
-- **Spiral-Evasion**: Target performing evasive spiral maneuvers.
-- **Terrain-Hugging-Chase**: Low-altitude pursuit over terrain.
-- **Hypersonic-Missile-Intercept**: Intercepting a hypersonic missile.
-- **Cinematic-Perpendicular**: A dramatic perpendicular engagement. (BF6 inspired)
 
 ## Guidance Laws
 
