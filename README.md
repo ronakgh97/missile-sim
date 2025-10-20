@@ -42,6 +42,10 @@ The simulation includes several preset scenarios, each with unique missile and t
 ![Demo_1](PPN_trajectory.png)
 ![Demo_2](TPN_trajectory.png)
 
+### Little Debug-Demo
+
+![Debug_Demo](debug_demo.gif)
+
 ### Predefined Scenarios
 
 ```rust
