@@ -12,6 +12,7 @@ pub fn load_preset_scenarios() -> Vec<Scenario> {
         test_5(),
         test_6(),
         test_7(),
+        test_8(),
     ]
 }
 
@@ -19,14 +20,14 @@ fn test_0() -> Scenario {
     ScenarioBuilder::new("Perpendicular-Intercept")
         .missile_config(MissileConfig {
             position: Vector3::new(500.0, 0.0, 0.0),
-            velocity: Vector3::new(0.0, 700.0, 0.0),
-            max_acceleration: 1200.0,
-            navigation_constant: 4.0,
-            max_closing_speed: 800.0,
+            velocity: Vector3::new(0.0, 1250.0, 0.0),
+            max_acceleration: 1500.0,
+            navigation_constant: 5.0,
+            max_closing_speed: 8000.0,
         })
         .target_config(TargetConfig {
             position: Vector3::new(-5000.0, 2000.0, 0.0),
-            velocity: Vector3::new(500.0, 0.0, 0.0),
+            velocity: Vector3::new(1200.0, 0.0, 0.0),
         })
         .dt(0.0001) // 1000 Hz update rate
         .total_time(30.0)
@@ -163,6 +164,25 @@ fn test_7() -> Scenario {
         })
         .dt(0.0001)
         .total_time(12.0)
+        .hit_threshold(5.0)
+        .build()
+}
+
+fn test_8() -> Scenario {
+    ScenarioBuilder::new("Side-Intercept")
+        .missile_config(MissileConfig {
+            position: Vector3::new(500.0, 0.0, 0.0),
+            velocity: Vector3::new(0.0, 1250.0, 0.0), // Steep dive
+            max_acceleration: 2500.0,
+            navigation_constant: 6.0,
+            max_closing_speed: 8000.0,
+        })
+        .target_config(TargetConfig {
+            position: Vector3::new(-5000.0, 2000.0, 5000.0),
+            velocity: Vector3::new(1200.0, 0.0, 0.0),
+        })
+        .dt(0.0001)
+        .total_time(10.0)
         .hit_threshold(5.0)
         .build()
 }
