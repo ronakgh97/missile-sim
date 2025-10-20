@@ -9,7 +9,7 @@ const GRID_SPACING: f32 = 1000.0;
 
 // Simulation settings
 const STEPS_PER_FRAME: usize = 60;
-const TRAIL_RENDER_STEP: usize = 10;
+const TRAIL_RENDER_STEP: usize = 8;
 
 // Camera settings
 const CAM_SENSITIVITY: f32 = 0.005;
@@ -25,7 +25,7 @@ const CAM_DEFAULT_PITCH: f32 = 0.5;
 // Visual settings
 const MISSILE_SIZE: f32 = 40.0;
 const TARGET_SIZE: f32 = 40.0;
-const TRAIL_SPHERE_SIZE: f32 = 5.0;
+const TRAIL_SPHERE_SIZE: f32 = 10.0;
 const VELOCITY_VECTOR_SCALE: f32 = 1.0;
 
 // Window settings
@@ -138,7 +138,7 @@ impl CameraState {
                 Vector3::new(100.0, 100.0, 100.0),
                 Vector3::zero(),
                 Vector3::up(),
-                72.0,
+                110.0,
             ),
             mode: CameraMode::Missile,
             yaw: CAM_DEFAULT_YAW,
@@ -172,15 +172,11 @@ impl CameraState {
 
 struct VisualToggles {
     show_vectors: bool,
-    show_grid: bool,
 }
 
 impl Default for VisualToggles {
     fn default() -> Self {
-        Self {
-            show_vectors: true,
-            show_grid: true,
-        }
+        Self { show_vectors: true }
     }
 }
 
@@ -209,7 +205,7 @@ fn draw_arrow(
     let shaft_length = size * 2.5;
     let shaft_radius = size * 0.2;
     let cone_length = size * 2.0;
-    let cone_radius = size * 0.25;
+    let cone_radius = size * 0.275;
 
     let shaft_end = Vector3::new(
         position.x + direction.x * shaft_length,
@@ -224,7 +220,7 @@ fn draw_arrow(
     );
 
     d3d.draw_cylinder_ex(position, shaft_end, shaft_radius, shaft_radius, 8, color);
-    d3d.draw_cylinder_ex(shaft_end, cone_tip, cone_radius, 0.1, 8, color);
+    d3d.draw_cylinder_ex(shaft_end, cone_tip, cone_radius, 0.15, 8, color);
 }
 
 // INPUT HANDLING
@@ -284,9 +280,6 @@ fn handle_input(
     if rl.is_key_pressed(KeyboardKey::KEY_V) {
         toggles.show_vectors = !toggles.show_vectors;
     }
-    if rl.is_key_pressed(KeyboardKey::KEY_G) {
-        toggles.show_grid = !toggles.show_grid;
-    }
 
     // Camera control
     camera_state.handle_mouse_input(rl);
@@ -295,41 +288,42 @@ fn handle_input(
 // RENDERING
 fn render_grid(d3d: &mut RaylibMode3D<RaylibDrawHandle>) {
     // Base grid
-    d3d.draw_grid(GRID_SIZE * 2, GRID_SPACING);
+    //d3d.draw_grid(GRID_SIZE * 2, GRID_SPACING);
 
     // Ground plane
     d3d.draw_plane(
         Vector3::new(0.0, -100.0, 0.0),
         Vector2::new(100000.0, 100000.0),
-        Color::FORESTGREEN,
+        Color::LIGHTGREEN,
     );
 
     // Grid lines
+
     for i in -GRID_SIZE..=GRID_SIZE {
         let pos = i as f32 * GRID_SPACING;
 
         d3d.draw_cube(
-            Vector3::new(pos, 0.0, 0.0),
-            1.0,
-            1.0,
+            Vector3::new(pos, 100.0, 0.0),
+            10.0,
+            10.0,
             (GRID_SIZE * 2) as f32 * GRID_SPACING,
             Color::GHOSTWHITE,
         );
 
         d3d.draw_cube(
-            Vector3::new(0.0, 0.0, pos),
+            Vector3::new(0.0, 100.0, pos),
             (GRID_SIZE * 2) as f32 * GRID_SPACING,
-            1.0,
-            1.0,
+            10.0,
+            10.0,
             Color::GHOSTWHITE,
         );
     }
 
     // Coordinate axes
-    let axis_len = 5000.0;
-    d3d.draw_cube(Vector3::zero(), axis_len, 5.0, 5.0, Color::RED); // X
-    d3d.draw_cube(Vector3::zero(), 5.0, axis_len, 5.0, Color::GREEN); // Y
-    d3d.draw_cube(Vector3::zero(), 5.0, 5.0, axis_len, Color::BLUE); // Z
+    let axis_len = 50000.0;
+    d3d.draw_cube(Vector3::zero(), axis_len, 5.0, 5.0, Color::DARKRED); // X
+    d3d.draw_cube(Vector3::zero(), 5.0, axis_len, 5.0, Color::DARKGRAY); // Y
+    d3d.draw_cube(Vector3::zero(), 5.0, 25.0, axis_len, Color::DARKBLUE); // Z
 }
 
 fn render_trails(
@@ -378,11 +372,6 @@ fn render_3d_scene(
         rlSetClipPlanes(0.1, 100000.0);
     }
 
-    // Grid
-    if toggles.show_grid {
-        render_grid(d3d);
-    }
-
     let m_vec = to_vec3(app_state.engine.missile.state.position);
     let t_vec = to_vec3(app_state.engine.target.state.position);
 
@@ -390,7 +379,7 @@ fn render_3d_scene(
     render_trails(d3d, &app_state.missile_trail, &app_state.target_trail);
 
     // Line of sight
-    d3d.draw_capsule(m_vec, t_vec, 1.0, 32, 64, Color::GHOSTWHITE);
+    d3d.draw_capsule(m_vec, t_vec, 5.0, 32, 64, Color::DARKBROWN);
 
     // Velocity vectors
     if toggles.show_vectors {
@@ -446,7 +435,7 @@ fn render_ui(
         16,
         Color::DARKBLUE,
     );
-    d.draw_text("V: Vectors | G: Grid", 10, h - 70, 16, Color::DARKBLUE);
+    d.draw_text("V: Vectors", 10, h - 70, 16, Color::DARKBLUE);
     d.draw_text(
         "1-9: Scenario | SPACE: Pause | R: Reset",
         10,
@@ -662,6 +651,7 @@ fn main() {
         {
             let mut d3d = d.begin_mode3D(camera_state.camera);
             render_3d_scene(&mut d3d, &app_state, &toggles);
+            render_grid(&mut d3d);
         }
 
         render_ui(
