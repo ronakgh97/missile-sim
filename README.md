@@ -132,7 +132,7 @@ All plots,data,metrics are saved in the `plots/` directory.
 
 ## Data Points
 
-## Extracted Data Point
+### Extracted Data Point
 
 ```rust
 #[derive(Serialize, Deserialize)]
