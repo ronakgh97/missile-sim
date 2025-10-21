@@ -160,7 +160,7 @@ enum GuidanceType {
 
 ## DATA GEN
 
--This [binary](src/bin/generate_data.rs) will generate nth dataset with about 10 features+ for model trainings.
+- This [binary](src/bin/generate_data.rs) will generate nth dataset with about 10 features+ for model trainings.
 
 - You add more or modify existing generation logic in the `src/scenarios/`
   directory, [Data](src/scenarios/train_data.rs),
