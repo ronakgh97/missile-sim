@@ -2,11 +2,16 @@ use nalgebra::Vector3;
 
 pub struct SimulationMetrics {
     pub missile_trajectory: Vec<Vector3<f64>>,
+    pub missile_velocity: Vec<Vector3<f64>>,
     pub target_trajectory: Vec<Vector3<f64>>,
+    pub target_velocity: Vec<Vector3<f64>>,
     pub time_history: Vec<f64>,
     pub distance_history: Vec<f64>,
     pub acceleration_history: Vec<f64>,
     pub los_rate_history: Vec<f64>,
+
+    /// Closing speed (rate of range decrease) - recorded for all guidance laws
+    /// for analysis purposes. Used directly by TPN, recorded for PPN comparison.
     pub closing_speed_history: Vec<f64>,
     pub hit: bool,
     pub miss_distance: f64,
@@ -16,7 +21,9 @@ impl SimulationMetrics {
     pub fn new() -> Self {
         Self {
             missile_trajectory: Vec::new(),
+            missile_velocity: Vec::new(),
             target_trajectory: Vec::new(),
+            target_velocity: Vec::new(),
             time_history: Vec::new(),
             distance_history: Vec::new(),
             acceleration_history: Vec::new(),
@@ -31,7 +38,9 @@ impl SimulationMetrics {
         &mut self,
         time: f64,
         missile_pos: Vector3<f64>,
+        missile_velocity: Vector3<f64>,
         target_pos: Vector3<f64>,
+        target_velocity: Vector3<f64>,
         acceleration: f64,
         los_rate: f64,
         closing_speed: f64,
@@ -40,7 +49,9 @@ impl SimulationMetrics {
 
         self.time_history.push(time);
         self.missile_trajectory.push(missile_pos);
+        self.missile_velocity.push(missile_velocity);
         self.target_trajectory.push(target_pos);
+        self.target_velocity.push(target_velocity);
         self.distance_history.push(distance);
         self.acceleration_history.push(acceleration);
         self.los_rate_history.push(los_rate);

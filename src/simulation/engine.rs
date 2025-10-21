@@ -80,7 +80,9 @@ impl SimulationEngine {
         metrics.record(
             self.time,
             self.missile.state.position,
+            self.missile.state.velocity,
             self.target.state.position,
+            self.target.state.velocity,
             accel_magnitude,
             los_rate,
             closing_speed,

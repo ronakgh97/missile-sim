@@ -10,12 +10,21 @@ pub struct SimulationDataPoint {
     pub missile_x: f64,
     pub missile_y: f64,
     pub missile_z: f64,
+    pub missile_vx: f64,
+    pub missile_vy: f64,
+    pub missile_vz: f64,
     pub target_x: f64,
     pub target_y: f64,
     pub target_z: f64,
+    pub target_vx: f64,
+    pub target_vy: f64,
+    pub target_vz: f64,
     pub distance: f64,
     pub acceleration: f64,
     pub los_rate: f64,
+
+    /// Closing speed (rate of range decrease) - recorded for all guidance laws
+    /// for analysis purposes. Used directly by TPN, recorded for PPN comparison.
     pub closing_speed: f64,
     pub hit: bool,
 }
@@ -42,9 +51,15 @@ impl SimulationMetrics {
                 missile_x: self.missile_trajectory[i].x,
                 missile_y: self.missile_trajectory[i].y,
                 missile_z: self.missile_trajectory[i].z,
+                missile_vx: self.missile_velocity[i].x,
+                missile_vy: self.missile_velocity[i].y,
+                missile_vz: self.missile_velocity[i].z,
                 target_x: self.target_trajectory[i].x,
                 target_y: self.target_trajectory[i].y,
                 target_z: self.target_trajectory[i].z,
+                target_vx: self.target_velocity[i].x,
+                target_vy: self.target_velocity[i].y,
+                target_vz: self.target_velocity[i].z,
                 distance: self.distance_history[i],
                 acceleration: self.acceleration_history[i],
                 los_rate: self.los_rate_history[i],
@@ -70,7 +85,7 @@ impl SimulationMetrics {
         // Write CSV header
         writeln!(
             file,
-            "time,missile_x,missile_y,missile_z,target_x,target_y,target_z,distance,acceleration,los_rate,closing_speed,hit"
+            "time,missile_x,missile_y,missile_z,missile_vx,missile_vy,missile_vz,target_x,target_y,target_z,target_vx,target_vy,target_vz,distance,acceleration,los_rate,closing_speed,hit"
         )?;
 
         // Build data points
@@ -80,14 +95,20 @@ impl SimulationMetrics {
         for dp in &data_points {
             writeln!(
                 file,
-                "{},{},{},{},{},{},{},{},{},{},{},{}",
+                "{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}",
                 dp.time,
                 dp.missile_x,
                 dp.missile_y,
                 dp.missile_z,
+                dp.missile_vx,
+                dp.missile_vy,
+                dp.missile_vz,
                 dp.target_x,
                 dp.target_y,
                 dp.target_z,
+                dp.target_vx,
+                dp.target_vy,
+                dp.target_vz,
                 dp.distance,
                 dp.acceleration,
                 dp.los_rate,
