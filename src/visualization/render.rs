@@ -26,7 +26,7 @@ impl RenderConfig {
     }
 
     pub fn data_dir(&self) -> String {
-        format!("{}/data", self.base_output_dir,)
+        "data".to_string()
     }
 }
 

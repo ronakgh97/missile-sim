@@ -12,6 +12,7 @@ pub mod prelude {
         GuidanceLaw, PureProportionalNavigation, TrueProportionalNavigation,
     };
     pub use crate::scenarios::load_preset_scenarios;
+    pub use crate::scenarios::load_train_data;
     pub use crate::simulation::{Scenario, ScenarioBuilder, SimulationEngine, SimulationMetrics};
     pub use crate::visualization::{PlottersRenderer, RenderConfig, Renderer};
 }
