@@ -144,7 +144,7 @@ pub fn plot_3d_trajectory(
 
         // Draw "Range" label
         chart.draw_series(std::iter::once(Text::new(
-            format!("Range: {:.2} m", range),
+            format!("Range: {range:.2} m"),
             (mid.0 + 200.0, mid.1 + 200.0, mid.2 + 1000.0),
             ("Lucida Console", 25).into_font().color(&BLACK),
         )))?;
