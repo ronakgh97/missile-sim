@@ -17,11 +17,14 @@ check-deadcode:
 check-todos:
     rg -i '// TODO:'
 
-run-default:
-    cargo run --bin default
+run-plot:
+    cargo build --bin plot
+    cargo run --bin plot
 
 run-data-gen:
-    cargo run --bin data_gen
+    cargo build --bin data
+    cargo run --bin data
 
 run-debug:
+    cargo build --bin debug
     cargo run --bin debug

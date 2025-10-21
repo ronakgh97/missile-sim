@@ -113,7 +113,7 @@ pub fn plot_all_metrics(
     let time = &metrics.time_history;
 
     // Separation Distance
-    let filename = format!("{}_separation_distance.png", base_name);
+    let filename = format!("{base_name}_separation_distance.png");
     plot_metric_chart(
         time,
         &metrics.distance_history,
@@ -127,7 +127,7 @@ pub fn plot_all_metrics(
     output_files.push(filename);
 
     // Closing Velocity
-    let filename = format!("{}_closing_velocity.png", base_name);
+    let filename = format!("{base_name}_closing_velocity.png");
     plot_metric_chart(
         time,
         &metrics.closing_speed_history,
@@ -141,7 +141,7 @@ pub fn plot_all_metrics(
     output_files.push(filename);
 
     // Lateral Acceleration
-    let filename = format!("{}_lateral_acceleration.png", base_name);
+    let filename = format!("{base_name}_lateral_acceleration.png");
     plot_metric_chart(
         time,
         &metrics.acceleration_history,
@@ -155,7 +155,7 @@ pub fn plot_all_metrics(
     output_files.push(filename);
 
     // Line-of-Sight Angular Rate
-    let filename = format!("{}_los_angular_rate.png", base_name);
+    let filename = format!("{base_name}_los_angular_rate.png");
     plot_metric_chart(
         time,
         &metrics.los_rate_history,
@@ -172,7 +172,7 @@ pub fn plot_all_metrics(
     let missile_speeds = calculate_speed_history(&metrics.missile_trajectory, time);
     let target_speeds = calculate_speed_history(&metrics.target_trajectory, time);
 
-    let filename = format!("{}_speed_comparison.png", base_name);
+    let filename = format!("{base_name}_speed_comparison.png");
     plot_comparison_chart(
         &time[1..],
         vec![
