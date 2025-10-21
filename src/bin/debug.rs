@@ -195,7 +195,7 @@ fn draw_arrow(
     let vel_norm = velocity.norm();
 
     if vel_norm < 0.1 {
-        d3d.draw_sphere(position, size, color);
+        d3d.draw_sphere(&position, size, color);
         return;
     }
 
@@ -219,8 +219,8 @@ fn draw_arrow(
         shaft_end.z + direction.z * cone_length,
     );
 
-    d3d.draw_cylinder_ex(position, shaft_end, shaft_radius, shaft_radius, 8, color);
-    d3d.draw_cylinder_ex(shaft_end, cone_tip, cone_radius, 0.15, 8, color);
+    d3d.draw_cylinder_ex(&position, &shaft_end, shaft_radius, shaft_radius, 8, color);
+    d3d.draw_cylinder_ex(&shaft_end, &cone_tip, cone_radius, 0.15, 8, color);
 }
 
 // INPUT HANDLING
@@ -235,6 +235,7 @@ fn handle_scenario_switching(rl: &RaylibHandle, app_state: &mut AppState, scenar
         KeyboardKey::KEY_SEVEN,
         KeyboardKey::KEY_EIGHT,
         KeyboardKey::KEY_NINE,
+        KeyboardKey::KEY_ZERO,
     ];
 
     for (i, &key) in scenario_keys.iter().enumerate() {
@@ -292,9 +293,9 @@ fn render_grid(d3d: &mut RaylibMode3D<RaylibDrawHandle>) {
 
     // Ground plane
     d3d.draw_plane(
-        Vector3::new(0.0, -100.0, 0.0),
-        Vector2::new(100000.0, 100000.0),
-        Color::LIGHTGREEN,
+        &Vector3::new(0.0, -100.0, 0.0),
+        &Vector2::new(100000.0, 100000.0),
+        Color::DARKSEAGREEN,
     );
 
     // Grid lines
@@ -303,7 +304,7 @@ fn render_grid(d3d: &mut RaylibMode3D<RaylibDrawHandle>) {
         let pos = i as f32 * GRID_SPACING;
 
         d3d.draw_cube(
-            Vector3::new(pos, 100.0, 0.0),
+            &Vector3::new(pos, 100.0, 0.0),
             10.0,
             10.0,
             (GRID_SIZE * 2) as f32 * GRID_SPACING,
@@ -311,7 +312,7 @@ fn render_grid(d3d: &mut RaylibMode3D<RaylibDrawHandle>) {
         );
 
         d3d.draw_cube(
-            Vector3::new(0.0, 100.0, pos),
+            &Vector3::new(0.0, 100.0, pos),
             (GRID_SIZE * 2) as f32 * GRID_SPACING,
             10.0,
             10.0,
@@ -321,9 +322,9 @@ fn render_grid(d3d: &mut RaylibMode3D<RaylibDrawHandle>) {
 
     // Coordinate axes
     let axis_len = 50000.0;
-    d3d.draw_cube(Vector3::zero(), axis_len, 5.0, 5.0, Color::DARKRED); // X
-    d3d.draw_cube(Vector3::zero(), 5.0, axis_len, 5.0, Color::DARKGRAY); // Y
-    d3d.draw_cube(Vector3::zero(), 5.0, 25.0, axis_len, Color::DARKBLUE); // Z
+    d3d.draw_cube(&Vector3::zero(), axis_len, 25.0, 25.0, Color::DARKRED); // X
+    d3d.draw_cube(&Vector3::zero(), 25.0, axis_len, 25.0, Color::DARKGREEN); // Y
+    d3d.draw_cube(&Vector3::zero(), 25.0, 25.0, axis_len, Color::DARKBLUE); // Z
 }
 
 fn render_trails(
@@ -332,11 +333,11 @@ fn render_trails(
     target_trail: &VecDeque<Vector3>,
 ) {
     for i in (0..missile_trail.len()).step_by(TRAIL_RENDER_STEP) {
-        d3d.draw_sphere(missile_trail[i], TRAIL_SPHERE_SIZE, Color::DARKRED);
+        d3d.draw_sphere(&missile_trail[i], TRAIL_SPHERE_SIZE, Color::DARKRED);
     }
 
     for i in (0..target_trail.len()).step_by(TRAIL_RENDER_STEP) {
-        d3d.draw_sphere(target_trail[i], TRAIL_SPHERE_SIZE, Color::DARKBLUE);
+        d3d.draw_sphere(&target_trail[i], TRAIL_SPHERE_SIZE, Color::DARKBLUE);
     }
 }
 
@@ -359,8 +360,8 @@ fn render_velocity_vectors(
         t_pos.z + (t_vel.z as f32 * VELOCITY_VECTOR_SCALE),
     );
 
-    d3d.draw_capsule_wires(m_pos, m_vel_end, 2.0, 24, 32, Color::BLACK);
-    d3d.draw_capsule_wires(t_pos, t_vel_end, 2.0, 24, 32, Color::BLACK);
+    d3d.draw_capsule_wires(&m_pos, &m_vel_end, 2.0, 24, 32, Color::BLACK);
+    d3d.draw_capsule_wires(&t_pos, &t_vel_end, 2.0, 24, 32, Color::BLACK);
 }
 
 fn render_3d_scene(
@@ -379,7 +380,7 @@ fn render_3d_scene(
     render_trails(d3d, &app_state.missile_trail, &app_state.target_trail);
 
     // Line of sight
-    d3d.draw_capsule(m_vec, t_vec, 5.0, 32, 64, Color::DARKBROWN);
+    d3d.draw_capsule(&m_vec, &t_vec, 5.0, 32, 64, Color::DARKBROWN);
 
     // Velocity vectors
     if toggles.show_vectors {
@@ -498,7 +499,7 @@ fn draw_ui_panel(
 
     let distance = (engine.missile.state.position - engine.target.state.position).norm();
     d.draw_text(
-        &format!("Separation:  {:.1} m", distance),
+        &format!("Separation:  {distance:.1} m"),
         x,
         y,
         18,
@@ -508,7 +509,7 @@ fn draw_ui_panel(
 
     let closing_speed = metrics.closing_speed_history.last().copied().unwrap_or(0.0);
     d.draw_text(
-        &format!("Closing V:   {:.1} m/s", closing_speed),
+        &format!("Closing V:   {closing_speed:.1} m/s"),
         x,
         y,
         18,
@@ -521,18 +522,12 @@ fn draw_ui_panel(
     } else {
         0.0
     };
-    d.draw_text(
-        &format!("Impact Est:  {:.2} s", time),
-        x,
-        y,
-        18,
-        Color::LIME,
-    );
+    d.draw_text(&format!("Impact Est:  {time:.2} s"), x, y, 18, Color::LIME);
     y += line_h + 5;
 
     let m_speed = engine.missile.state.velocity.norm();
     d.draw_text(
-        &format!("Missile Spd: {:.0} m/s", m_speed),
+        &format!("Missile Spd: {m_speed:.0} m/s"),
         x,
         y,
         18,
@@ -542,7 +537,7 @@ fn draw_ui_panel(
 
     let t_speed = engine.target.state.velocity.norm();
     d.draw_text(
-        &format!("Target Spd:  {:.0} m/s", t_speed),
+        &format!("Target Spd:  {t_speed:.0} m/s"),
         x,
         y,
         18,
@@ -553,7 +548,7 @@ fn draw_ui_panel(
     let accel = metrics.acceleration_history.last().copied().unwrap_or(0.0);
     let g_force = accel / 9.81;
     d.draw_text(
-        &format!("Accel:       {:.1} G", g_force),
+        &format!("Accel:       {g_force:.1} G"),
         x,
         y,
         18,
@@ -563,7 +558,7 @@ fn draw_ui_panel(
 
     let los_rate = metrics.los_rate_history.last().copied().unwrap_or(0.0);
     d.draw_text(
-        &format!("LOS Rate:    {:.4} rad/s", los_rate),
+        &format!("LOS Rate:    {los_rate:.4} rad/s"),
         x,
         y,
         18,
@@ -590,7 +585,7 @@ fn draw_ui_panel(
     y += line_h;
 
     d.draw_text(
-        &format!("Cam Dist: {:.0} m", cam_distance),
+        &format!("Cam Dist: {cam_distance:.0} m"),
         x,
         y,
         16,
