@@ -7,7 +7,7 @@ visualizing the results through 3D plots, performance metrics and generate data 
 ## Features
 
 - **Multiple Guidance Laws**: Supports Pure Proportional Navigation (PPN) and True Proportional Navigation (TPN).
-- **Diverse Scenarios**: Includes scenarios like head-on intercepts, tail chases, air strikes, and more.
+- **Diverse Scenarios**: Includes scenarios like perpendicular-intercept, side-intercept, air strikes, ground launchs and more.
 - **Physics with Assumption**: Uses basic kinematics with configurable missile and target parameters.
 - **Visualization**: Generates trajectory plots and metric charts using Plotters.
 - **Train Data Generation**: Outputs data suitable for training machine learning models.
@@ -160,7 +160,7 @@ enum GuidanceType {
 
 ## DATA GEN
 
--This [binary](src/bin/generate_data.rs) will generate nth dataset with about 10 features+ for model trainings.
+- This [binary](src/bin/generate_data.rs) will generate nth dataset with about 10 features+ for model trainings.
 
 - You add more or modify existing generation logic in the `src/scenarios/`
   directory, [Data](src/scenarios/train_data.rs),

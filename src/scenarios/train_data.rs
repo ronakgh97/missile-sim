@@ -9,7 +9,7 @@ use std::f64::consts::TAU;
 pub fn load_train_data() -> Vec<Scenario> {
     let mut scenarios = Vec::new();
 
-    for seed in 0..200 {
+    for seed in 0..100 {
         scenarios.push(generate_random_scenario(seed));
     }
 
@@ -74,7 +74,7 @@ fn generate_random_scenario(seed: u64) -> Scenario {
             position: t_pos,
             velocity: t_vel,
         })
-        .dt(0.0001) // 10kHz 
+        .dt(0.0001) // 10kHz
         .total_time(30.0)
         .hit_threshold(10.0)
         .build()

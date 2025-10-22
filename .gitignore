@@ -4,4 +4,6 @@
 
 /data
 
+.venv/
+
 .idea

@@ -35,11 +35,11 @@ fn main() -> Result<(), Box<dyn Error>> {
                 eprintln!("✗ CSV export failed: {}", e);
             }
 
-            if let Err(e) =
+            /*if let Err(e) =
                 metrics.export_metadata(&scenario.name, guidance_name, &data_dir, scenario.dt)
             {
                 eprintln!("✗ Metadata export failed: {}", e);
-            }
+            }*/
 
             if let Err(e) = metrics.export_summary(&scenario.name, guidance_name, &data_dir) {
                 eprintln!("✗ Summary export failed: {}", e);
@@ -57,8 +57,6 @@ fn main() -> Result<(), Box<dyn Error>> {
             );
         }
     });
-
-    println!("   Data saved to: {}/csv/", data_dir);
 
     Ok(())
 }
