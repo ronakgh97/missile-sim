@@ -8,7 +8,7 @@ const GRID_SIZE: i32 = 2500;
 const GRID_SPACING: f32 = 1000.0;
 
 // Simulation settings
-const STEPS_PER_FRAME: usize = 60;
+const STEPS_PER_FRAME: usize = 120;
 const TRAIL_RENDER_STEP: usize = 8;
 
 // Camera settings
@@ -59,13 +59,15 @@ impl CameraMode {
 enum GuidanceType {
     PurePN,
     TruePN,
+    PurePursuit,
 }
 
 impl GuidanceType {
     fn next(&self) -> Self {
         match self {
             GuidanceType::PurePN => GuidanceType::TruePN,
-            GuidanceType::TruePN => GuidanceType::PurePN,
+            GuidanceType::TruePN => GuidanceType::PurePursuit,
+            GuidanceType::PurePursuit => GuidanceType::PurePN,
         }
     }
 
@@ -73,6 +75,7 @@ impl GuidanceType {
         match self {
             GuidanceType::PurePN => "Pure PN",
             GuidanceType::TruePN => "True PN",
+            GuidanceType::PurePursuit => "Pure Pursuit",
         }
     }
 
@@ -80,6 +83,7 @@ impl GuidanceType {
         match self {
             GuidanceType::PurePN => &PureProportionalNavigation,
             GuidanceType::TruePN => &TrueProportionalNavigation,
+            GuidanceType::PurePursuit => &PurePursuit,
         }
     }
 }
