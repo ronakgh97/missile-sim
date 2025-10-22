@@ -5,10 +5,14 @@ fn main() -> Result<(), Box<dyn Error>> {
     // Load preset scenarios
     let scenarios = load_preset_scenarios();
 
+    let lead_pursuit = LeadPursuit::new(1.0);
+
     // Define guidance laws to plots
     let guidance_laws: Vec<Box<dyn GuidanceLaw>> = vec![
         Box::new(PureProportionalNavigation),
         Box::new(TrueProportionalNavigation),
+        Box::new(PurePursuit),
+        Box::new(lead_pursuit),
     ];
 
     // Configure renderer
@@ -43,8 +47,8 @@ fn main() -> Result<(), Box<dyn Error>> {
             //metrics.export_summary(&scenario.name, guidance.name(), &data_dir)?;
 
             println!("{}", metrics.console_print());
-            //println!("  Trajectory plot: {}", traj_file);
-            //println!("  Metrics: {:?} files", metric_files.len());
+            //println!("  Trajectory plot: {}", _traj_file);
+            //println!("  Metrics: {:?} files", _metric_files.len());
         }
 
         println!();
