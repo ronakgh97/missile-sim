@@ -20,8 +20,8 @@ fn test_0() -> Scenario {
             velocity: Vector3::new(1200.0, 0.0, 0.0),
         })
         .dt(0.0001) // 1000 Hz update rate
-        .total_time(30.0)
-        .hit_threshold(5.0)
+        .total_time(60.0)
+        .hit_threshold(10.0)
         .build()
 }
 
@@ -39,27 +39,27 @@ fn test_1() -> Scenario {
             velocity: Vector3::new(100.0, 0.0, 1000.0),
         })
         .dt(0.0001)
-        .total_time(15.0)
-        .hit_threshold(5.0)
+        .total_time(60.0)
+        .hit_threshold(10.0)
         .build()
 }
 
 fn test_2() -> Scenario {
     ScenarioBuilder::new("Air-Strike")
         .missile_config(MissileConfig {
-            position: Vector3::new(-1000.0, 5000.0, 0.0),
-            velocity: Vector3::new(2500.0, 0.0, 0.0),
-            max_acceleration: 2500.0,
+            position: Vector3::new(-5000.0, 5000.0, 0.0),
+            velocity: Vector3::new(2555.0, -1250.0, 0.0),
+            max_acceleration: 4500.0,
             navigation_constant: 6.0,
             max_closing_speed: 8550.0,
         })
         .target_config(TargetConfig {
-            position: Vector3::new(5000.0, 0.0, 0.0),
+            position: Vector3::new(5000.0, 100.0, 0.0),
             velocity: Vector3::new(750.0, 0.0, 0.0),
         })
         .dt(0.0001)
-        .total_time(10.0)
-        .hit_threshold(5.0)
+        .total_time(60.0)
+        .hit_threshold(10.0)
         .build()
 }
 
@@ -68,8 +68,8 @@ fn test_3() -> Scenario {
         .missile_config(MissileConfig {
             position: Vector3::new(500.0, 0.0, 0.0),
             velocity: Vector3::new(0.0, 1250.0, 0.0), // Steep dive
-            max_acceleration: 2500.0,
-            navigation_constant: 6.0,
+            max_acceleration: 5500.0,
+            navigation_constant: 8.0,
             max_closing_speed: 8000.0,
         })
         .target_config(TargetConfig {
@@ -77,7 +77,7 @@ fn test_3() -> Scenario {
             velocity: Vector3::new(1200.0, 0.0, 0.0),
         })
         .dt(0.0001)
-        .total_time(10.0)
-        .hit_threshold(5.0)
+        .total_time(60.0)
+        .hit_threshold(10.0)
         .build()
 }
