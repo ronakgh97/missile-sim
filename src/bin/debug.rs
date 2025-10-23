@@ -8,8 +8,11 @@ const GRID_SIZE: i32 = 2500;
 const GRID_SPACING: f32 = 1000.0;
 
 // Simulation settings
-const STEPS_PER_FRAME: usize = 120;
-const TRAIL_RENDER_STEP: usize = 8;
+const STEPS_PER_FRAME: usize = 144;
+const TRAIL_RENDER_STEP: usize = 10;
+// Target control constants
+const TARGET_CONTROL_ACCEL: f64 = 750.0; // m/s^2 acceleration when key held
+const TARGET_MAX_SPEED: f64 = 2500.0; // m/s max speed for target when player-controlled
 
 // Camera settings
 const CAM_SENSITIVITY: f32 = 0.005;
@@ -59,15 +62,21 @@ impl CameraMode {
 enum GuidanceType {
     PurePN,
     TruePN,
+    AugmentedPN,
     PurePursuit,
+    DeviatedPursuit,
+    LeadPursuit,
 }
 
 impl GuidanceType {
     fn next(&self) -> Self {
         match self {
             GuidanceType::PurePN => GuidanceType::TruePN,
-            GuidanceType::TruePN => GuidanceType::PurePursuit,
-            GuidanceType::PurePursuit => GuidanceType::PurePN,
+            GuidanceType::TruePN => GuidanceType::AugmentedPN,
+            GuidanceType::AugmentedPN => GuidanceType::PurePursuit,
+            GuidanceType::PurePursuit => GuidanceType::DeviatedPursuit,
+            GuidanceType::DeviatedPursuit => GuidanceType::LeadPursuit,
+            GuidanceType::LeadPursuit => GuidanceType::PurePN,
         }
     }
 
@@ -75,15 +84,21 @@ impl GuidanceType {
         match self {
             GuidanceType::PurePN => "Pure PN",
             GuidanceType::TruePN => "True PN",
+            GuidanceType::AugmentedPN => "Augmented PN",
             GuidanceType::PurePursuit => "Pure Pursuit",
+            GuidanceType::DeviatedPursuit => "Deviated Pursuit",
+            GuidanceType::LeadPursuit => "Lead Pursuit",
         }
     }
 
-    fn as_guidance_law(&self) -> &dyn GuidanceLaw {
+    fn as_guidance_law(&self) -> Box<dyn GuidanceLaw> {
         match self {
-            GuidanceType::PurePN => &PureProportionalNavigation,
-            GuidanceType::TruePN => &TrueProportionalNavigation,
-            GuidanceType::PurePursuit => &PurePursuit,
+            GuidanceType::PurePN => Box::new(PureProportionalNavigation),
+            GuidanceType::TruePN => Box::new(TrueProportionalNavigation),
+            GuidanceType::AugmentedPN => Box::new(AugmentedProportionalNavigation::default()),
+            GuidanceType::PurePursuit => Box::new(PurePursuit),
+            GuidanceType::DeviatedPursuit => Box::new(DeviatedPursuit),
+            GuidanceType::LeadPursuit => Box::new(LeadPursuit::default()),
         }
     }
 }
@@ -96,6 +111,8 @@ struct AppState {
     missile_trail: VecDeque<Vector3>,
     target_trail: VecDeque<Vector3>,
     paused: bool,
+    target_control_mode: bool,
+    target_input_accel: nalgebra::Vector3<f64>,
 }
 
 impl AppState {
@@ -108,6 +125,8 @@ impl AppState {
             missile_trail: VecDeque::new(),
             target_trail: VecDeque::new(),
             paused: true,
+            target_control_mode: false,
+            target_input_accel: nalgebra::Vector3::zeros(),
         }
     }
 
@@ -117,6 +136,8 @@ impl AppState {
         self.missile_trail.clear();
         self.target_trail.clear();
         self.paused = true;
+        self.target_control_mode = false;
+        self.target_input_accel = nalgebra::Vector3::zeros();
     }
 
     fn update_trails(&mut self) {
@@ -251,6 +272,36 @@ fn handle_scenario_switching(rl: &RaylibHandle, app_state: &mut AppState, scenar
     }
 }
 
+fn handle_target_control(rl: &RaylibHandle, app_state: &mut AppState) {
+    // Frame-rate independent.
+    let mut dir = nalgebra::Vector3::zeros();
+
+    if rl.is_key_down(KeyboardKey::KEY_W) {
+        dir.x += 1.0;
+    }
+    if rl.is_key_down(KeyboardKey::KEY_S) {
+        dir.x -= 1.0;
+    }
+    if rl.is_key_down(KeyboardKey::KEY_D) {
+        dir.z += 1.0;
+    }
+    if rl.is_key_down(KeyboardKey::KEY_A) {
+        dir.z -= 1.0;
+    }
+    if rl.is_key_down(KeyboardKey::KEY_E) {
+        dir.y += 1.0;
+    }
+    if rl.is_key_down(KeyboardKey::KEY_Q) {
+        dir.y -= 1.0;
+    }
+
+    if dir.norm() > 0.0 {
+        app_state.target_input_accel = dir.normalize() * TARGET_CONTROL_ACCEL;
+    } else {
+        app_state.target_input_accel = nalgebra::Vector3::zeros();
+    }
+}
+
 fn handle_input(
     rl: &RaylibHandle,
     app_state: &mut AppState,
@@ -272,6 +323,11 @@ fn handle_input(
         app_state.reset(&scenarios[app_state.current_scenario_index]);
     }
 
+    // Target control toggle
+    if rl.is_key_pressed(KeyboardKey::KEY_T) {
+        app_state.target_control_mode = !app_state.target_control_mode;
+    }
+
     // Simulation control
     if rl.is_key_pressed(KeyboardKey::KEY_SPACE) {
         app_state.paused = !app_state.paused;
@@ -284,6 +340,11 @@ fn handle_input(
     // Visual toggles
     if rl.is_key_pressed(KeyboardKey::KEY_V) {
         toggles.show_vectors = !toggles.show_vectors;
+    }
+
+    // Target control input
+    if app_state.target_control_mode && !app_state.paused {
+        handle_target_control(rl, app_state);
     }
 
     // Camera control
@@ -429,22 +490,29 @@ fn render_ui(
         camera_state.distance,
         camera_state.mode,
         app_state.current_guidance,
+        app_state.target_control_mode,
     );
 
     // Control hints
     let h = d.get_screen_height();
     d.draw_text(
-        "RMB: Rotate | WHEEL: Zoom | C: Camera | L: Guidance",
+        "RMB: Rotate | WHEEL: Zoom | C: Camera | L: Guidance | T: Target Ctrl",
+        10,
+        h - 110,
+        16,
+        Color::DARKBLUE,
+    );
+    d.draw_text(
+        "WASD: Move Target | Q/E: Alt Target | V: Vectors",
         10,
         h - 90,
         16,
         Color::DARKBLUE,
     );
-    d.draw_text("V: Vectors", 10, h - 70, 16, Color::DARKBLUE);
     d.draw_text(
         "1-9: Scenario | SPACE: Pause | R: Reset",
         10,
-        h - 50,
+        h - 70,
         16,
         Color::DARKBLUE,
     );
@@ -459,6 +527,7 @@ fn draw_ui_panel(
     cam_distance: f32,
     camera_mode: CameraMode,
     guidance_type: GuidanceType,
+    target_control_mode: bool,
 ) {
     let panel_x = d.get_screen_width() - 400;
     let panel_y = 10;
@@ -597,6 +666,23 @@ fn draw_ui_panel(
     );
     y += line_h;
 
+    let target_control_color = if target_control_mode {
+        Color::GREEN
+    } else {
+        Color::GRAY
+    };
+    d.draw_text(
+        &format!(
+            "Target Ctrl: {}",
+            if target_control_mode { "ON" } else { "OFF" }
+        ),
+        x,
+        y,
+        16,
+        target_control_color,
+    );
+    y += line_h;
+
     d.draw_fps(x, y);
 }
 
@@ -631,7 +717,23 @@ fn main() {
         if !app_state.paused {
             let guidance = app_state.current_guidance.as_guidance_law();
             for _ in 0..STEPS_PER_FRAME {
-                app_state.engine.step(guidance, &mut app_state.metrics);
+                // If player is controlling the target, apply per-step acceleration
+                if app_state.target_control_mode {
+                    // Apply accel = a * dt
+                    let a = app_state.target_input_accel;
+                    app_state.engine.target.state.velocity += a * app_state.engine.dt;
+
+                    // clamp speed
+                    let speed = app_state.engine.target.state.velocity.norm();
+                    if speed > TARGET_MAX_SPEED {
+                        app_state.engine.target.state.velocity =
+                            app_state.engine.target.state.velocity.normalize() * TARGET_MAX_SPEED;
+                    }
+                }
+
+                app_state
+                    .engine
+                    .step(guidance.as_ref(), &mut app_state.metrics);
             }
             app_state.update_trails();
         }
