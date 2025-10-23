@@ -32,13 +32,13 @@ impl GuidanceLaw for PurePursuit {
         let lateral_component = range_unit - velocity_unit * velocity_unit.dot(&range_unit);
 
         if lateral_component.norm() < 1e-12 {
-            // Already aligned 
+            // Already aligned
             return range_unit * missile.max_acceleration;
         }
 
         let lateral_unit = lateral_component.normalize();
 
-        // Acceleration perpendicular to velocity 
+        // Acceleration perpendicular to velocity
         let accel_magnitude =
             missile.navigation_constant * missile_speed * lateral_component.norm();
 

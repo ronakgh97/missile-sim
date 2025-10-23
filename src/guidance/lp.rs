@@ -24,49 +24,103 @@ impl LeadPursuit {
 
 impl GuidanceLaw for LeadPursuit {
     fn calculate_acceleration(&self, missile: &Missile, target: &Target) -> Vector3<f64> {
-        // Predict target's future position
-        let predicted_target_pos = target.state.position + target.state.velocity * self.lead_time;
+        let missile_speed = missile.state.speed();
 
-        // Vector from missile to predicted position
-        let range_vec = predicted_target_pos - missile.state.position;
+        if missile_speed < 1e-6 {
+            // No speed, just accelerate toward current target position
+            let range_vec = target.state.position - missile.state.position;
+            let range = range_vec.norm();
+            if range < 1e-6 {
+                return Vector3::zeros();
+            }
+            return (range_vec / range) * missile.max_acceleration;
+        }
+
+        // LEAD ANGLE COMPENSATION
+        // Calculate intercept point using vector triangle method
+        // Solves: |Vt * t + Rt| = |Vm| * t (where missile flies at constant speed)
+
+        let range_vec = target.state.position - missile.state.position;
         let range = range_vec.norm();
-
-        // Damping factor to reduce aggressiveness at close range
-        let damping = if range < 1000.0 {
-            (range / 1000.0).clamp(0.1, 1.0)
-        } else {
-            1.0
-        };
 
         if range < 1e-6 {
             return Vector3::zeros();
         }
 
-        // Desired direction (toward predicted position)
-        let range_unit = range_vec / range;
+        // Quadratic coefficients for time to intercept
+        // (Vt)^2 * t^2 + 2*Rt·Vt * t + (Rt^2 - Vm^2 * t^2) = 0
+        // Rearranged: (Vt^2 - Vm^2) * t^2 + 2*Rt·Vt * t + Rt^2 = 0
 
-        // Current missile state
-        let missile_speed = missile.state.speed();
+        let vt = &target.state.velocity;
+        let vt_sq = vt.norm_squared();
+        let vm_sq = missile_speed * missile_speed;
 
-        if missile_speed < 1e-6 {
-            // just accelerate toward predicted position
-            return range_unit * missile.max_acceleration;
+        let a = vt_sq - vm_sq;
+        let b = 2.0 * range_vec.dot(vt);
+        let c = range_vec.norm_squared();
+
+        let mut intercept_point = target.state.position + vt * self.lead_time; // fallback
+
+        // Solve quadratic equation
+        let discriminant = b * b - 4.0 * a * c;
+
+        if discriminant >= 0.0 && a.abs() > 1e-6 {
+            let sqrt_disc = discriminant.sqrt();
+            let t1 = (-b + sqrt_disc) / (2.0 * a);
+            let t2 = (-b - sqrt_disc) / (2.0 * a);
+
+            // Choose positive, smaller time
+            let t_intercept = if t1 > 0.0 && t2 > 0.0 {
+                t1.min(t2)
+            } else if t1 > 0.0 {
+                t1
+            } else if t2 > 0.0 {
+                t2
+            } else {
+                self.lead_time // no valid solution, use fallback
+            };
+
+            // Clamp to reasonable time horizon
+            let t_clamped = t_intercept.min(self.lead_time * 2.0).max(0.1);
+            intercept_point = target.state.position + vt * t_clamped;
+        } else if a.abs() <= 1e-6 && b.abs() > 1e-6 {
+            // Linear case (missile and target speeds are equal)
+            let t_intercept = -c / b;
+            if t_intercept > 0.0 {
+                let t_clamped = t_intercept.min(self.lead_time * 2.0);
+                intercept_point = target.state.position + vt * t_clamped;
+            }
         }
 
+        // PURSUIT LOGIC TO INTERCEPT POINT
+        let aim_vec = intercept_point - missile.state.position;
+        let aim_range = aim_vec.norm();
+
+        // Damping factor to reduce aggressiveness at close range
+        let damping = if aim_range < 1000.0 {
+            (aim_range / 1000.0).clamp(0.1, 1.0)
+        } else {
+            1.0
+        };
+
+        if aim_range < 1e-6 {
+            return Vector3::zeros();
+        }
+
+        let aim_unit = aim_vec / aim_range;
         let velocity_unit = missile.state.velocity / missile_speed;
 
-        // Compute lateral (perpendicular) component needed to turn
-        let lateral_component = range_unit - velocity_unit * velocity_unit.dot(&range_unit);
+        // Compute lateral (perpendicular) component needed to turn toward intercept
+        let lateral_component = aim_unit - velocity_unit * velocity_unit.dot(&aim_unit);
 
         if lateral_component.norm() < 1e-12 {
-            // Already pointing at predicted position
-            return range_unit * missile.max_acceleration;
+            // Already aligned with intercept point
+            return aim_unit * missile.max_acceleration;
         }
 
         let lateral_unit = lateral_component.normalize();
 
         // Acceleration magnitude based on required turn rate
-        // Use navigation constant as turn gain
         let accel_magnitude =
             missile.navigation_constant * missile_speed * lateral_component.norm() * damping;
 
