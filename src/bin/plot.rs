@@ -6,12 +6,15 @@ fn main() -> Result<(), Box<dyn Error>> {
     let scenarios = load_preset_scenarios();
 
     let lead_pursuit = LeadPursuit::new(1.0);
+    let augmented_pn = AugmentedProportionalNavigation::new(1.0);
 
     // Define guidance laws to plots
     let guidance_laws: Vec<Box<dyn GuidanceLaw>> = vec![
         Box::new(PureProportionalNavigation),
         Box::new(TrueProportionalNavigation),
+        Box::new(augmented_pn),
         Box::new(PurePursuit),
+        Box::new(DeviatedPursuit),
         Box::new(lead_pursuit),
     ];
 
