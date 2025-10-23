@@ -36,10 +36,7 @@ impl GuidanceLaw for LeadPursuit {
             return (range_vec / range) * missile.max_acceleration;
         }
 
-        // LEAD ANGLE COMPENSATION
         // Calculate intercept point using vector triangle method
-        // Solves: |Vt * t + Rt| = |Vm| * t (where missile flies at constant speed)
-
         let range_vec = target.state.position - missile.state.position;
         let range = range_vec.norm();
 
@@ -47,10 +44,7 @@ impl GuidanceLaw for LeadPursuit {
             return Vector3::zeros();
         }
 
-        // Quadratic coefficients for time to intercept
-        // (Vt)^2 * t^2 + 2*Rt·Vt * t + (Rt^2 - Vm^2 * t^2) = 0
-        // Rearranged: (Vt^2 - Vm^2) * t^2 + 2*Rt·Vt * t + Rt^2 = 0
-
+        // Solve quadratic equation for time-to-intercept
         let vt = &target.state.velocity;
         let vt_sq = vt.norm_squared();
         let vm_sq = missile_speed * missile_speed;

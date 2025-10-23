@@ -3,7 +3,7 @@ use crate::entity::{Missile, Target};
 use crate::guidance::traits::GuidanceLaw;
 use nalgebra::Vector3;
 
-/// Deviated Pursuit (DP) - Pursuit with velocity matching and adaptive aggression
+/// Deviated Pursuit (DP) - Enhanced pursuit with velocity matching and adaptive aggression
 ///
 /// Improvements over Pure Pursuit:
 /// - Short-term velocity vector alignment
