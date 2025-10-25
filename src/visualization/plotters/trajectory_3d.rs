@@ -238,6 +238,7 @@ pub fn draw_labeled_dot(
 }
 
 /// Draw velocity vectors along a 3D trajectory
+#[allow(dead_code)]
 fn draw_velocity_vectors(
     chart: &mut ChartContext<
         '_,
