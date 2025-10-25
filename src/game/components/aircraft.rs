@@ -24,6 +24,7 @@ pub struct AircraftData {
     pub max_thrust: f32,
     pub current_thrust: f32,
 
+    // COMBAT
     pub angle_of_attack: f32,
     pub sideslip_angle: f32,
 }
@@ -92,19 +93,4 @@ pub enum AircraftType {
     F16,
     F22,
     Su27,
-}
-
-#[derive(Component, Debug, Clone)]
-pub struct Weapons {
-    pub missiles: u32,
-    pub flares: u32,
-}
-
-impl Default for Weapons {
-    fn default() -> Self {
-        Self {
-            missiles: 6,
-            flares: 20,
-        }
-    }
 }

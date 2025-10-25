@@ -8,6 +8,8 @@ pub struct Aircraft;
 
 #[derive(Component, Debug, Copy, Clone)]
 pub struct Player;
+#[derive(Component, Debug, Copy, Clone)]
+pub struct RemotePlayer;
 
 #[derive(Component, Debug, Copy, Clone)]
 pub struct Enemy;

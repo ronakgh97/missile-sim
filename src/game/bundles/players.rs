@@ -1,10 +1,11 @@
-use crate::game::components::aircraft::{AircraftData, Weapons};
+use crate::game::components::aircraft::{AircraftData};
 use crate::game::components::controller::Controller;
 use crate::game::components::health::Health;
 use crate::game::components::input::{LocalInput, RemoteInput};
-use crate::game::components::marker::{Aircraft, Player};
+use crate::game::components::marker::{Aircraft, Player, RemotePlayer};
 use crate::game::components::movement::{Acceleration, Velocity};
 use crate::game::components::player::{PlayerId, PlayerInfo};
+use crate::game::components::missile::MissileData;
 use bevy::prelude::*;
 
 /// Bundle for spawning a LOCAL PLAYER
@@ -21,7 +22,6 @@ pub struct LocalPlayerBundle {
 
     // Aircraft data
     pub aircraft_data: AircraftData,
-    pub weapons: Weapons,
 
     // Movement
     pub velocity: Velocity,
@@ -29,6 +29,7 @@ pub struct LocalPlayerBundle {
 
     // Combat
     pub health: Health,
+    pub missile: MissileData,
 
     // Input
     pub local_input: LocalInput,
@@ -50,11 +51,10 @@ impl Default for LocalPlayerBundle {
             player_info: PlayerInfo::default(),
             controller: Controller::LocalPlayer,
             aircraft_data: AircraftData::f16(),
-            weapons: Weapons::default(),
             velocity: Velocity(Vec3::new(100.0, 0.0, 0.0)),
             acceleration: Acceleration(Vec3::ZERO),
-
             health: Health::new(100.0),
+            missile: MissileData::default(),
             local_input: LocalInput::default(),
             transform: Transform::from_xyz(0.0, 100.0, 0.0),
             global_transform: GlobalTransform::default(),
@@ -88,7 +88,7 @@ impl LocalPlayerBundle {
 pub struct RemotePlayerBundle {
     // Markers
     pub aircraft: Aircraft,
-    pub player: Player,
+    pub player: RemotePlayer,
 
     // Player data
     pub player_id: PlayerId,
@@ -97,7 +97,6 @@ pub struct RemotePlayerBundle {
 
     // Aircraft data
     pub aircraft_data: AircraftData,
-    pub weapons: Weapons,
 
     // Movement
     pub velocity: Velocity,
@@ -121,12 +120,11 @@ impl RemotePlayerBundle {
     pub fn new(id: u32, name: String, position: Vec3) -> Self {
         Self {
             aircraft: Aircraft,
-            player: Player,
+            player: RemotePlayer,
             player_id: PlayerId::new(id),
             player_info: PlayerInfo { name, ..default() },
             controller: Controller::RemotePlayer,
             aircraft_data: AircraftData::f16(),
-            weapons: Weapons::default(),
             velocity: Velocity(Vec3::ZERO),
             acceleration: Acceleration(Vec3::ZERO),
             health: Health::new(100.0),
