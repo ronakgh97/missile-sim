@@ -18,7 +18,7 @@ fn main() {
             ..default()
         }))
         .insert_resource(MouseControl::default())
-        .add_systems(Startup, (setup_world_system, setup_player_system))
+        .add_systems(Startup, (setup_world_system, setup_player_system, setup_dummy_player_system))
         .add_systems(
             Update,
             (
@@ -166,6 +166,28 @@ fn setup_player_system(
     ));
 }
 
+fn setup_dummy_player_system(
+    mut commands: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+) {
+    // Dummy aircraft mesh
+    let aircraft_mesh = meshes.add(Cuboid::new(35.0, 5.0, 50.0));
+    let aircraft_material = materials.add(StandardMaterial {
+        base_color: Color::srgb(0.1, 0.1, 0.9), // Bright blue
+        metallic: 1.0,
+        perceptual_roughness: 0.75,
+        ..default()
+    });
+
+    commands.spawn((
+        RemotePlayerBundle::new(123, "dummy".to_string() ,Vec3::new(200.0, 100.0, 200.0)),
+        Mesh3d(aircraft_mesh),
+        MeshMaterial3d(aircraft_material),
+    ));
+}
+
+
 fn camera_follow_system(
     player_query: Query<&Transform, (With<Aircraft>, With<Player>)>,
     mut camera_query: Query<&mut Transform, (With<MainCamera>, Without<Aircraft>)>,
@@ -175,9 +197,9 @@ fn camera_follow_system(
         (player_query.single(), camera_query.single_mut())
     {
         let player_pos = player_transform.translation;
-        let player_forward = player_transform.forward();
+        let player_forward = player_transform.forward().as_vec3();
 
-        let offset = *-player_forward * 50.0 + Vec3::Y * 30.0;
+        let offset = -player_forward * 50.0 + Vec3::Y * 30.0;
         let target_position = player_pos + offset;
 
         let lerp_factor = 5.0 * time.delta_secs();
@@ -227,10 +249,10 @@ fn handle_input_system(
 
         // Throttle
         if keys.pressed(KeyCode::KeyW) {
-            input.throttle = (input.throttle + 0.01).min(1.0);
+            input.throttle = (input.throttle + 0.005).min(1.0);
         }
         if keys.pressed(KeyCode::KeyS) {
-            input.throttle = (input.throttle - 0.01).max(0.0);
+            input.throttle = (input.throttle - 0.005).max(0.1);
         }
     }
 }
