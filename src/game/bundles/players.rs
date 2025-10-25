@@ -125,7 +125,7 @@ impl RemotePlayerBundle {
             player_id: PlayerId::new(id),
             player_info: PlayerInfo { name, ..default() },
             controller: Controller::RemotePlayer,
-            aircraft_data: AircraftData::default(),
+            aircraft_data: AircraftData::f16(),
             weapons: Weapons::default(),
             velocity: Velocity(Vec3::ZERO),
             acceleration: Acceleration(Vec3::ZERO),
