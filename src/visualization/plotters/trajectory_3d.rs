@@ -95,8 +95,7 @@ pub fn plot_3d_trajectory(
         .enumerate()
         .min_by(|a, b| a.1.partial_cmp(b.1).unwrap())
         .map(|(idx, _)| idx)
-    {
-        if closest_idx < metrics.missile_trajectory.len()
+        && closest_idx < metrics.missile_trajectory.len()
             && closest_idx < metrics.target_trajectory.len()
         {
             let m_pos = &metrics.missile_trajectory[closest_idx];
@@ -114,7 +113,6 @@ pub fn plot_3d_trajectory(
             );
             draw_labeled_dot(&mut chart, mid, &BLACK)?;
         }
-    }
 
     // Draw initial line (from missile start to target start)
     if let (Some(m_start), Some(t_start)) = (

@@ -220,7 +220,7 @@ fn draw_arrow(
     let vel_norm = velocity.norm();
 
     if vel_norm < 0.1 {
-        d3d.draw_sphere(&position, size, color);
+        d3d.draw_sphere(position, size, color);
         return;
     }
 
@@ -244,8 +244,8 @@ fn draw_arrow(
         shaft_end.z + direction.z * cone_length,
     );
 
-    d3d.draw_cylinder_ex(&position, &shaft_end, shaft_radius, shaft_radius, 8, color);
-    d3d.draw_cylinder_ex(&shaft_end, &cone_tip, cone_radius, 0.15, 8, color);
+    d3d.draw_cylinder_ex(position, shaft_end, shaft_radius, shaft_radius, 8, color);
+    d3d.draw_cylinder_ex(shaft_end, cone_tip, cone_radius, 0.15, 8, color);
 }
 
 // INPUT HANDLING
@@ -358,8 +358,8 @@ fn render_grid(d3d: &mut RaylibMode3D<RaylibDrawHandle>) {
 
     // Ground plane
     d3d.draw_plane(
-        &Vector3::new(0.0, -100.0, 0.0),
-        &Vector2::new(100000.0, 100000.0),
+        Vector3::new(0.0, -100.0, 0.0),
+        Vector2::new(100000.0, 100000.0),
         Color::DARKSEAGREEN,
     );
 
@@ -369,7 +369,7 @@ fn render_grid(d3d: &mut RaylibMode3D<RaylibDrawHandle>) {
         let pos = i as f32 * GRID_SPACING;
 
         d3d.draw_cube(
-            &Vector3::new(pos, 100.0, 0.0),
+            Vector3::new(pos, 100.0, 0.0),
             10.0,
             10.0,
             (GRID_SIZE * 2) as f32 * GRID_SPACING,
@@ -377,7 +377,7 @@ fn render_grid(d3d: &mut RaylibMode3D<RaylibDrawHandle>) {
         );
 
         d3d.draw_cube(
-            &Vector3::new(0.0, 100.0, pos),
+            Vector3::new(0.0, 100.0, pos),
             (GRID_SIZE * 2) as f32 * GRID_SPACING,
             10.0,
             10.0,
@@ -387,9 +387,9 @@ fn render_grid(d3d: &mut RaylibMode3D<RaylibDrawHandle>) {
 
     // Coordinate axes
     let axis_len = 50000.0;
-    d3d.draw_cube(&Vector3::zero(), axis_len, 25.0, 25.0, Color::DARKRED); // X
-    d3d.draw_cube(&Vector3::zero(), 25.0, axis_len, 25.0, Color::DARKGREEN); // Y
-    d3d.draw_cube(&Vector3::zero(), 25.0, 25.0, axis_len, Color::DARKBLUE); // Z
+    d3d.draw_cube(Vector3::zero(), axis_len, 25.0, 25.0, Color::DARKRED); // X
+    d3d.draw_cube(Vector3::zero(), 25.0, axis_len, 25.0, Color::DARKGREEN); // Y
+    d3d.draw_cube(Vector3::zero(), 25.0, 25.0, axis_len, Color::DARKBLUE); // Z
 }
 
 fn render_trails(
@@ -398,11 +398,11 @@ fn render_trails(
     target_trail: &VecDeque<Vector3>,
 ) {
     for i in (0..missile_trail.len()).step_by(TRAIL_RENDER_STEP) {
-        d3d.draw_sphere(&missile_trail[i], TRAIL_SPHERE_SIZE, Color::DARKRED);
+        d3d.draw_sphere(missile_trail[i], TRAIL_SPHERE_SIZE, Color::DARKRED);
     }
 
     for i in (0..target_trail.len()).step_by(TRAIL_RENDER_STEP) {
-        d3d.draw_sphere(&target_trail[i], TRAIL_SPHERE_SIZE, Color::DARKBLUE);
+        d3d.draw_sphere(target_trail[i], TRAIL_SPHERE_SIZE, Color::DARKBLUE);
     }
 }
 
@@ -425,8 +425,8 @@ fn render_velocity_vectors(
         t_pos.z + (t_vel.z as f32 * VELOCITY_VECTOR_SCALE),
     );
 
-    d3d.draw_capsule_wires(&m_pos, &m_vel_end, 2.0, 24, 32, Color::BLACK);
-    d3d.draw_capsule_wires(&t_pos, &t_vel_end, 2.0, 24, 32, Color::BLACK);
+    d3d.draw_capsule_wires(m_pos, m_vel_end, 2.0, 24, 32, Color::BLACK);
+    d3d.draw_capsule_wires(t_pos, t_vel_end, 2.0, 24, 32, Color::BLACK);
 }
 
 fn render_3d_scene(
@@ -445,7 +445,7 @@ fn render_3d_scene(
     render_trails(d3d, &app_state.missile_trail, &app_state.target_trail);
 
     // Line of sight
-    d3d.draw_capsule(&m_vec, &t_vec, 5.0, 32, 64, Color::DARKBROWN);
+    d3d.draw_capsule(m_vec, t_vec, 5.0, 32, 64, Color::DARKBROWN);
 
     // Velocity vectors
     if toggles.show_vectors {
