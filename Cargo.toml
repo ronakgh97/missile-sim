@@ -20,6 +20,7 @@ name = "data"
 path = "src/bin/generate_data.rs"
 
 [dependencies]
+clap = { version = "4.5.46", features = ["derive"] }
 plotters = "0.3.7"
 nalgebra = "0.34.1"
 serde = { version = "1.0.228", features = ["derive"] }
