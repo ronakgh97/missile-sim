@@ -6,8 +6,9 @@ visualizing the results through 3D plots, performance metrics and generate data 
 
 ## Features
 
-- **Multiple Guidance Laws**: Supports Pure Proportional Navigation (PPN) and True Proportional Navigation (TPN).
-- **Diverse Scenarios**: Includes scenarios like perpendicular-intercept, side-intercept, air strikes, ground launchs and more.
+- **Multiple Guidance Laws**: Supports Pure Proportional Navigation (PPN) and True Proportional Navigation (TPN) and more.
+- **Diverse Scenarios**: Includes scenarios like perpendicular-intercept, side-intercept, air strikes, ground launch
+  and more.
 - **Physics with Assumption**: Uses basic kinematics with configurable missile and target parameters.
 - **Visualization**: Generates trajectory plots and metric charts using Plotters.
 - **Train Data Generation**: Outputs data suitable for training machine learning models.
