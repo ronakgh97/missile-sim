@@ -10,8 +10,8 @@ impl Default for RenderConfig {
     fn default() -> Self {
         Self {
             base_output_dir: "plots".to_string(),
-            width: 1280,
-            height: 900,
+            width: 1024,
+            height: 768,
         }
     }
 }

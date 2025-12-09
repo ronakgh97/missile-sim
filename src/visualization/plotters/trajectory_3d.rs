@@ -40,7 +40,7 @@ pub fn plot_3d_trajectory(
         + 500.0;
 
     let mut chart = ChartBuilder::on(&root)
-        .caption(title, ("Lucida Console", 40))
+        .caption(title, ("0xProto Nerd Font", 40))
         .margin(15)
         .build_cartesian_3d(min_x..max_x, min_y..max_y, min_z..max_z)?;
 
@@ -51,44 +51,63 @@ pub fn plot_3d_trajectory(
         .x_labels(4)
         .y_labels(4)
         .z_labels(4)
-        .label_style(("Lucida Console", 20))
+        .label_style(("0xProto Nerd Font", 20))
         .draw()?;
 
-    // Draw missile trajectory
+    // Calculate metrics for legend
+    let m_start = metrics.missile_trajectory.first();
+    let m_end = metrics.missile_trajectory.last();
+    let t_start = metrics.target_trajectory.first();
+    let t_end = metrics.target_trajectory.last();
+
+    let initial_range = if let (Some(ms), Some(ts)) = (m_start, t_start) {
+        ((ms.x - ts.x).powi(2) + (ms.y - ts.y).powi(2) + (ms.z - ts.z).powi(2)).sqrt()
+    } else {
+        0.0
+    };
+
+    let miss_distance = metrics
+        .distance_history
+        .iter()
+        .fold(f64::INFINITY, |acc, &d| acc.min(d));
+
+    let time_taken = metrics.time_history.last().copied().unwrap_or(0.0);
+
+    // Draw missile trajectory (no in-graph labels)
     chart
         .draw_series(LineSeries::new(
             metrics.missile_trajectory.iter().map(|p| (p.x, p.y, p.z)),
-            &RED,
+            RED.stroke_width(2),
         ))?
-        .label("Missile")
-        .legend(|(x, y)| PathElement::new(vec![(x, y), (x + 20, y)], RED));
+        .label("Missile Trajectory")
+        .legend(|(x, y)| PathElement::new(vec![(x, y), (x + 20, y)], RED.stroke_width(2)));
 
-    if let Some(start) = metrics.missile_trajectory.first() {
-        draw_start_marker(&mut chart, (start.x, start.y, start.z), 10, &RED)?;
+    if let Some(start) = m_start {
+        draw_marker(&mut chart, (start.x, start.y, start.z), 10, &RED)?;
     }
 
-    if let Some(end) = metrics.missile_trajectory.last() {
-        draw_end_marker(&mut chart, (end.x, end.y, end.z), 25.0, &GREEN)?;
+    if let Some(end) = m_end {
+        draw_marker(&mut chart, (end.x, end.y, end.z), 10, &RED)?;
     }
 
-    // Draw target trajectory
+    // Draw target trajectory (no in-graph labels)
     chart
         .draw_series(LineSeries::new(
             metrics.target_trajectory.iter().map(|p| (p.x, p.y, p.z)),
-            &BLUE,
+            BLUE.stroke_width(2),
         ))?
-        .label("Target")
-        .legend(|(x, y)| PathElement::new(vec![(x, y), (x + 20, y)], BLUE));
+        .label("Target Trajectory")
+        .legend(|(x, y)| PathElement::new(vec![(x, y), (x + 20, y)], BLUE.stroke_width(2)));
 
-    if let Some(start) = metrics.target_trajectory.first() {
-        draw_start_marker(&mut chart, (start.x, start.y, start.z), 8, &BLUE)?;
+    if let Some(start) = t_start {
+        draw_marker(&mut chart, (start.x, start.y, start.z), 8, &BLUE)?;
     }
 
-    if let Some(end) = metrics.target_trajectory.last() {
-        draw_end_marker(&mut chart, (end.x, end.y, end.z), 25.0, &GREEN)?;
+    if let Some(end) = t_end {
+        draw_marker(&mut chart, (end.x, end.y, end.z), 8, &BLUE)?;
     }
 
-    // Draw miss distance line
+    // Draw miss distance line (no label)
     if let Some(closest_idx) = metrics
         .distance_history
         .iter()
@@ -96,63 +115,95 @@ pub fn plot_3d_trajectory(
         .min_by(|a, b| a.1.partial_cmp(b.1).unwrap())
         .map(|(idx, _)| idx)
         && closest_idx < metrics.missile_trajectory.len()
-            && closest_idx < metrics.target_trajectory.len()
-        {
-            let m_pos = &metrics.missile_trajectory[closest_idx];
-            let t_pos = &metrics.target_trajectory[closest_idx];
+        && closest_idx < metrics.target_trajectory.len()
+    {
+        let m_pos = &metrics.missile_trajectory[closest_idx];
+        let t_pos = &metrics.target_trajectory[closest_idx];
 
-            chart.draw_series(LineSeries::new(
+        chart
+            .draw_series(LineSeries::new(
                 vec![(m_pos.x, m_pos.y, m_pos.z), (t_pos.x, t_pos.y, t_pos.z)],
-                GREEN.stroke_width(10),
-            ))?;
-
-            let mid = (
-                (m_pos.x + t_pos.x) / 2.0,
-                (m_pos.y + t_pos.y) / 2.0,
-                (m_pos.z + t_pos.z) / 2.0,
-            );
-            draw_labeled_dot(&mut chart, mid, &BLACK)?;
-        }
-
-    // Draw initial line (from missile start to target start)
-    if let (Some(m_start), Some(t_start)) = (
-        metrics.missile_trajectory.first(),
-        metrics.target_trajectory.first(),
-    ) {
-        chart.draw_series(LineSeries::new(
-            vec![
-                (m_start.x, m_start.y, m_start.z),
-                (t_start.x, t_start.y, t_start.z),
-            ],
-            ShapeStyle::from(&BLACK).stroke_width(1),
-        ))?;
-
-        // Compute midpoint for label placement
-        let mid = (
-            (m_start.x + t_start.x) / 2.0,
-            (m_start.y + t_start.y) / 2.0,
-            (m_start.z + t_start.z) / 2.0,
-        );
-
-        // Compute distance
-        let range = ((m_start.x - t_start.x).powi(2)
-            + (m_start.y - t_start.y).powi(2)
-            + (m_start.z - t_start.z).powi(2))
-        .sqrt();
-
-        // Draw "Range" label
-        chart.draw_series(std::iter::once(Text::new(
-            format!("Range: {range:.2} m"),
-            (mid.0 + 200.0, mid.1 + 200.0, mid.2 + 1000.0),
-            ("Lucida Console", 25).into_font().color(&BLACK),
-        )))?;
+                GREEN.stroke_width(3),
+            ))?
+            .label("Miss Distance")
+            .legend(|(x, y)| PathElement::new(vec![(x, y), (x + 20, y)], GREEN.stroke_width(3)));
     }
 
+    // Draw initial range line (no label)
+    if let (Some(ms), Some(ts)) = (m_start, t_start) {
+        chart
+            .draw_series(LineSeries::new(
+                vec![(ms.x, ms.y, ms.z), (ts.x, ts.y, ts.z)],
+                BLACK.stroke_width(1),
+            ))?
+            .label("Initial Range")
+            .legend(|(x, y)| PathElement::new(vec![(x, y), (x + 20, y)], BLACK.stroke_width(1)));
+    }
+
+    // Add legend entries for positions
+    chart
+        .draw_series(std::iter::empty::<PathElement<_>>())?
+        .label(format!(
+            "Missile Start: ({:.0}, {:.0}, {:.0}) m",
+            m_start.map_or(0.0, |p| p.x),
+            m_start.map_or(0.0, |p| p.y),
+            m_start.map_or(0.0, |p| p.z)
+        ))
+        .legend(|(x, y)| Circle::new((x + 10, y), 5, RED.filled()));
+
+    chart
+        .draw_series(std::iter::empty::<PathElement<_>>())?
+        .label(format!(
+            "Missile End: ({:.0}, {:.0}, {:.0}) m",
+            m_end.map_or(0.0, |p| p.x),
+            m_end.map_or(0.0, |p| p.y),
+            m_end.map_or(0.0, |p| p.z)
+        ))
+        .legend(|(x, y)| Circle::new((x + 10, y), 5, RED.filled()));
+
+    chart
+        .draw_series(std::iter::empty::<PathElement<_>>())?
+        .label(format!(
+            "Target Start: ({:.0}, {:.0}, {:.0}) m",
+            t_start.map_or(0.0, |p| p.x),
+            t_start.map_or(0.0, |p| p.y),
+            t_start.map_or(0.0, |p| p.z)
+        ))
+        .legend(|(x, y)| Circle::new((x + 10, y), 5, BLUE.filled()));
+
+    chart
+        .draw_series(std::iter::empty::<PathElement<_>>())?
+        .label(format!(
+            "Target End: ({:.0}, {:.0}, {:.0}) m",
+            t_end.map_or(0.0, |p| p.x),
+            t_end.map_or(0.0, |p| p.y),
+            t_end.map_or(0.0, |p| p.z)
+        ))
+        .legend(|(x, y)| Circle::new((x + 10, y), 5, BLUE.filled()));
+
+    // Add metrics to legend
+    chart
+        .draw_series(std::iter::empty::<PathElement<_>>())?
+        .label(format!("Initial Range: {:.2} m", initial_range))
+        .legend(|(x, y)| EmptyElement::at((x, y)));
+
+    chart
+        .draw_series(std::iter::empty::<PathElement<_>>())?
+        .label(format!("Miss Distance: {:.2} m", miss_distance))
+        .legend(|(x, y)| EmptyElement::at((x, y)));
+
+    chart
+        .draw_series(std::iter::empty::<PathElement<_>>())?
+        .label(format!("Time: {:.3} s", time_taken))
+        .legend(|(x, y)| EmptyElement::at((x, y)));
+
+    // Configure and draw legend
     chart
         .configure_series_labels()
-        .background_style(WHITE.mix(0.8))
+        .background_style(WHITE.mix(0.95))
         .border_style(BLACK)
-        .label_font(("Lucida Console", 20))
+        .label_font(("0xProto Nerd Font", 16))
+        .margin(10)
         .draw()?;
 
     root.present()?;
@@ -161,8 +212,8 @@ pub fn plot_3d_trajectory(
 
 // HELPER FUNCTIONS
 
-/// Draw a filled circle marker at start position
-fn draw_start_marker(
+/// Draw a simple filled circle marker
+fn draw_marker(
     chart: &mut ChartContext<
         '_,
         BitMapBackend,
@@ -178,59 +229,6 @@ fn draw_start_marker(
         ShapeStyle::from(color).filled(),
         &|c, s, st| EmptyElement::at(c) + Circle::new((0, 0), s, st.filled()),
     ))?;
-    draw_labeled_dot(chart, position, color)?;
-    Ok(())
-}
-
-/// Draw an X marker at end position
-fn draw_end_marker(
-    chart: &mut ChartContext<
-        '_,
-        BitMapBackend,
-        Cartesian3d<RangedCoordf64, RangedCoordf64, RangedCoordf64>,
-    >,
-    position: (f64, f64, f64),
-    size: f64,
-    color: &RGBColor,
-) -> Result<(), Box<dyn std::error::Error>> {
-    // First diagonal
-    chart.draw_series(LineSeries::new(
-        vec![
-            (position.0 - size, position.1 - size, position.2),
-            (position.0 + size, position.1 + size, position.2),
-        ],
-        color.stroke_width(10),
-    ))?;
-
-    // Second diagonal
-    chart.draw_series(LineSeries::new(
-        vec![
-            (position.0 - size, position.1 + size, position.2),
-            (position.0 + size, position.1 - size, position.2),
-        ],
-        color.stroke_width(10),
-    ))?;
-
-    Ok(())
-}
-
-/// Draw a dot with coordinate label
-pub fn draw_labeled_dot(
-    chart: &mut ChartContext<
-        '_,
-        BitMapBackend,
-        Cartesian3d<RangedCoordf64, RangedCoordf64, RangedCoordf64>,
-    >,
-    position: (f64, f64, f64),
-    color: &RGBColor,
-) -> Result<(), Box<dyn std::error::Error>> {
-    chart.draw_series(std::iter::once(Circle::new(position, 2, color.filled())))?;
-
-    chart.draw_series(std::iter::once(Text::new(
-        format!("({:.2}, {:.2}, {:.2})", position.0, position.1, position.2),
-        (position.0 + 100.0, position.1 + 100.0, position.2 + 1000.0),
-        ("Lucida Console", 25).into_font().color(color),
-    )))?;
 
     Ok(())
 }
