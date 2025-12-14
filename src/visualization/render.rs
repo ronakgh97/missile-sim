@@ -17,12 +17,18 @@ impl Default for RenderConfig {
 }
 
 impl RenderConfig {
-    pub fn trajectory_output_path(&self, scenario_name: &str) -> String {
-        format!("{}/trajectories/{}", self.base_output_dir, scenario_name,)
+    pub fn trajectory_output_path(&self, scenario_name: &str, guidance_type: &str) -> String {
+        format!(
+            "{}/trajectories/{}/{}",
+            self.base_output_dir, scenario_name, guidance_type
+        )
     }
 
-    pub fn metrics_dir(&self, scenario_name: &str) -> String {
-        format!("{}/metrics/{}", self.base_output_dir, scenario_name,)
+    pub fn metrics_dir(&self, scenario_name: &str, guidance_type: &str) -> String {
+        format!(
+            "{}/metrics/{}/{}",
+            self.base_output_dir, scenario_name, guidance_type
+        )
     }
 
     pub fn data_dir(&self) -> String {

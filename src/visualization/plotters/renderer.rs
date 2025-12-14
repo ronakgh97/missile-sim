@@ -18,7 +18,7 @@ impl Renderer for PlottersRenderer {
         guidance_name: &str,
         config: &RenderConfig,
     ) -> Result<String, Box<dyn std::error::Error>> {
-        let dir = config.trajectory_output_path(scenario_name);
+        let dir = config.trajectory_output_path(scenario_name, guidance_name);
         fs::create_dir_all(&dir)?;
 
         let filename = format!("{dir}/{guidance_name}_trajectory.png");
@@ -42,7 +42,7 @@ impl Renderer for PlottersRenderer {
         guidance_name: &str,
         config: &RenderConfig,
     ) -> Result<Vec<String>, Box<dyn std::error::Error>> {
-        let dir = config.metrics_dir(scenario_name);
+        let dir = config.metrics_dir(scenario_name, guidance_name);
         fs::create_dir_all(&dir)?;
 
         let base_name = format!("{dir}/{guidance_name}");

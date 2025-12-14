@@ -241,7 +241,7 @@ fn draw_velocity_vectors(
         BitMapBackend,
         Cartesian3d<RangedCoordf64, RangedCoordf64, RangedCoordf64>,
     >,
-    trajectory: &Vec<Vector3<f64>>,
+    trajectory: &[Vector3<f64>],
     color: &RGBColor,
     scale: f64,
 ) -> Result<(), Box<dyn std::error::Error>> {
