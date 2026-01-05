@@ -1,4 +1,5 @@
 use crate::simulation::SimulationMetrics;
+use anyhow::Result;
 use nalgebra::Vector3;
 use plotters::coord::cartesian::Cartesian3d;
 use plotters::coord::types::RangedCoordf64;
@@ -10,7 +11,7 @@ pub fn plot_3d_trajectory(
     title: &str,
     width: u32,
     height: u32,
-) -> Result<(), Box<dyn std::error::Error>> {
+) -> Result<()> {
     let root = BitMapBackend::new(filename, (width, height)).into_drawing_area();
     root.fill(&WHITE)?;
 
@@ -222,7 +223,7 @@ fn draw_marker(
     position: (f64, f64, f64),
     radius: i32,
     color: &RGBColor,
-) -> Result<(), Box<dyn std::error::Error>> {
+) -> Result<()> {
     chart.draw_series(PointSeries::of_element(
         vec![position],
         radius,
@@ -244,7 +245,7 @@ fn draw_velocity_vectors(
     trajectory: &[Vector3<f64>],
     color: &RGBColor,
     scale: f64,
-) -> Result<(), Box<dyn std::error::Error>> {
+) -> Result<()> {
     for i in 0..trajectory.len().saturating_sub(1) {
         let p1 = trajectory[i];
         let p2 = trajectory[i + 1];

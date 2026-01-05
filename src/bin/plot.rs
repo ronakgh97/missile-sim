@@ -1,10 +1,9 @@
+use anyhow::Result;
 use missile_sim::prelude::*;
-use std::error::Error;
 
-fn main() -> Result<(), Box<dyn Error>> {
+fn main() -> Result<()> {
     // Load preset scenarios
     let scenarios = load_preset_scenarios();
-
 
     // Define guidance laws to plots
     let guidance_laws: Vec<Box<dyn GuidanceLaw>> = vec![
@@ -32,7 +31,8 @@ fn main() -> Result<(), Box<dyn Error>> {
             let metrics = engine.run(guidance.as_ref());
 
             // Render plots
-            let _traj_file = renderer.render_trajectory_3d(
+            #[allow(unused)]
+            let trajectory_file = renderer.render_trajectory_3d(
                 &metrics,
                 &scenario.name,
                 guidance.name(),

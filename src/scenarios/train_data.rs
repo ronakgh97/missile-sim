@@ -1,6 +1,7 @@
 use crate::entity::{MissileConfig, TargetConfig};
 use crate::prelude::Scenario;
 use crate::simulation::ScenarioBuilder;
+use anyhow::Result;
 use nalgebra::Vector3;
 use rand::prelude::StdRng;
 use rand::{Rng, SeedableRng};
@@ -10,13 +11,16 @@ pub fn load_train_data() -> Vec<Scenario> {
     let mut scenarios = Vec::new();
 
     for seed in 0..100 {
-        scenarios.push(generate_random_scenario(seed));
+        scenarios.push(
+            generate_random_scenario(seed)
+                .unwrap_or_else(|e| panic!("Failed to generate scenario {}: {}", seed, e)),
+        );
     }
 
     scenarios
 }
 
-fn generate_random_scenario(seed: u64) -> Scenario {
+fn generate_random_scenario(seed: u64) -> Result<Scenario> {
     let mut rng = StdRng::seed_from_u64(seed);
 
     // Random position in 3D space

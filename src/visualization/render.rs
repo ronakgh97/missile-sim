@@ -1,4 +1,5 @@
 use crate::simulation::SimulationMetrics;
+use anyhow::Result;
 
 pub struct RenderConfig {
     pub base_output_dir: String,
@@ -43,7 +44,7 @@ pub trait Renderer {
         scenario_name: &str,
         guidance_name: &str,
         config: &RenderConfig,
-    ) -> Result<String, Box<dyn std::error::Error>>;
+    ) -> Result<String>;
 
     fn render_metrics(
         &self,
@@ -51,5 +52,5 @@ pub trait Renderer {
         scenario_name: &str,
         guidance_name: &str,
         config: &RenderConfig,
-    ) -> Result<Vec<String>, Box<dyn std::error::Error>>;
+    ) -> Result<Vec<String>>;
 }

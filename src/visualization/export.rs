@@ -1,4 +1,5 @@
 use crate::simulation::SimulationMetrics;
+use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use std::fs::{self, File};
 use std::io::Write;
@@ -75,7 +76,7 @@ impl SimulationMetrics {
         scenario_name: &str,
         guidance_name: &str,
         output_dir: &str,
-    ) -> Result<String, Box<dyn std::error::Error>> {
+    ) -> Result<String> {
         let dir = format!("{output_dir}/csv");
         fs::create_dir_all(&dir)?;
 
@@ -127,7 +128,7 @@ impl SimulationMetrics {
         guidance_name: &str,
         output_dir: &str,
         dt: f64,
-    ) -> Result<String, Box<dyn std::error::Error>> {
+    ) -> Result<String> {
         let dir = format!("{output_dir}/json");
         fs::create_dir_all(&dir)?;
 
@@ -169,7 +170,7 @@ impl SimulationMetrics {
         scenario_name: &str,
         guidance_name: &str,
         output_dir: &str,
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    ) -> Result<()> {
         let filename = format!("{output_dir}/summary.csv");
         let path = Path::new(&filename);
 

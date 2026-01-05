@@ -1,12 +1,18 @@
 use crate::entity::{MissileConfig, TargetConfig};
 use crate::simulation::{Scenario, ScenarioBuilder};
+use anyhow::Result;
 use nalgebra::Vector3;
 
 pub fn load_preset_scenarios() -> Vec<Scenario> {
-    vec![test_0(), test_1(), test_2(), test_3()]
+    vec![
+        test_0().expect("Failed to build Perpendicular-Intercept scenario"),
+        test_1().expect("Failed to build Ground-Launch-Strike scenario"),
+        test_2().expect("Failed to build Air-Strike scenario"),
+        test_3().expect("Failed to build Side-Intercept scenario"),
+    ]
 }
 
-fn test_0() -> Scenario {
+fn test_0() -> Result<Scenario> {
     ScenarioBuilder::new("Perpendicular-Intercept")
         .missile_config(MissileConfig {
             position: Vector3::new(500.0, 0.0, 0.0),
@@ -25,7 +31,7 @@ fn test_0() -> Scenario {
         .build()
 }
 
-fn test_1() -> Scenario {
+fn test_1() -> Result<Scenario> {
     ScenarioBuilder::new("Ground-Launch-Strike")
         .missile_config(MissileConfig {
             position: Vector3::new(0.0, 0.0, 0.0),
@@ -44,7 +50,7 @@ fn test_1() -> Scenario {
         .build()
 }
 
-fn test_2() -> Scenario {
+fn test_2() -> Result<Scenario> {
     ScenarioBuilder::new("Air-Strike")
         .missile_config(MissileConfig {
             position: Vector3::new(-5000.0, 5000.0, 0.0),
@@ -63,7 +69,7 @@ fn test_2() -> Scenario {
         .build()
 }
 
-fn test_3() -> Scenario {
+fn test_3() -> Result<Scenario> {
     ScenarioBuilder::new("Side-Intercept")
         .missile_config(MissileConfig {
             position: Vector3::new(500.0, 0.0, 0.0),

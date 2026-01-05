@@ -1,5 +1,6 @@
 use crate::entity::{Missile, MissileConfig, Target, TargetConfig};
 use crate::simulation::engine::SimulationEngine;
+use anyhow::{Context, Result};
 
 #[derive(Clone, Debug)]
 pub struct Scenario {
@@ -73,14 +74,14 @@ impl ScenarioBuilder {
         self
     }
 
-    pub fn build(self) -> Scenario {
-        Scenario {
+    pub fn build(self) -> Result<Scenario> {
+        Ok(Scenario {
             name: self.name,
-            missile_config: self.missile_config.expect("missile_config is required"),
-            target_config: self.target_config.expect("target_config is required"),
+            missile_config: self.missile_config.context("missile_config is required")?,
+            target_config: self.target_config.context("target_config is required")?,
             dt: self.dt,
             total_time: self.total_time,
             hit_threshold: self.hit_threshold,
-        }
+        })
     }
 }

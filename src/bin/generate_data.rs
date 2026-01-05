@@ -1,9 +1,9 @@
+use anyhow::Result;
 use missile_sim::prelude::*;
 use rayon::prelude::*;
-use std::error::Error;
 use std::sync::atomic::{AtomicUsize, Ordering};
 
-fn main() -> Result<(), Box<dyn Error>> {
+fn main() -> Result<()> {
     println!("Generating training data with parallel processing...\n");
 
     // Load scenarios

@@ -1,5 +1,6 @@
 use crate::simulation::SimulationMetrics;
 use crate::visualization::render::{RenderConfig, Renderer};
+use anyhow::Result;
 use std::fs;
 
 pub struct PlottersRenderer;
@@ -17,7 +18,7 @@ impl Renderer for PlottersRenderer {
         scenario_name: &str,
         guidance_name: &str,
         config: &RenderConfig,
-    ) -> Result<String, Box<dyn std::error::Error>> {
+    ) -> Result<String> {
         let dir = config.trajectory_output_path(scenario_name, guidance_name);
         fs::create_dir_all(&dir)?;
 
@@ -41,7 +42,7 @@ impl Renderer for PlottersRenderer {
         scenario_name: &str,
         guidance_name: &str,
         config: &RenderConfig,
-    ) -> Result<Vec<String>, Box<dyn std::error::Error>> {
+    ) -> Result<Vec<String>> {
         let dir = config.metrics_dir(scenario_name, guidance_name);
         fs::create_dir_all(&dir)?;
 

@@ -1,4 +1,5 @@
 use crate::simulation::SimulationMetrics;
+use anyhow::{Context, Result};
 use plotters::prelude::*;
 
 pub fn plot_metric_chart(
@@ -10,7 +11,7 @@ pub fn plot_metric_chart(
     width: u32,
     height: u32,
     color: &RGBColor,
-) -> Result<(), Box<dyn std::error::Error>> {
+) -> Result<()> {
     let root = BitMapBackend::new(filename, (width, height)).into_drawing_area();
     root.fill(&WHITE)?;
 
@@ -22,7 +23,10 @@ pub fn plot_metric_chart(
         .margin(20)
         .x_label_area_size(50)
         .y_label_area_size(70)
-        .build_cartesian_2d(time[0]..*time.last().unwrap(), min_val..max_val)?;
+        .build_cartesian_2d(
+            time[0]..*time.last().context("Time history is empty")?,
+            min_val..max_val,
+        )?;
 
     chart
         .configure_mesh()
@@ -49,7 +53,7 @@ pub fn plot_comparison_chart(
     y_label: &str,
     width: u32,
     height: u32,
-) -> Result<(), Box<dyn std::error::Error>> {
+) -> Result<()> {
     let root = BitMapBackend::new(filename, (width, height)).into_drawing_area();
     root.fill(&WHITE)?;
 
@@ -72,7 +76,10 @@ pub fn plot_comparison_chart(
         .margin(20)
         .x_label_area_size(50)
         .y_label_area_size(70)
-        .build_cartesian_2d(time[0]..*time.last().unwrap(), global_min..global_max)?;
+        .build_cartesian_2d(
+            time[0]..*time.last().context("Time history is empty")?,
+            global_min..global_max,
+        )?;
 
     chart
         .configure_mesh()
@@ -108,7 +115,7 @@ pub fn plot_all_metrics(
     base_name: &str,
     width: u32,
     height: u32,
-) -> Result<Vec<String>, Box<dyn std::error::Error>> {
+) -> Result<Vec<String>> {
     let mut output_files = Vec::new();
     let time = &metrics.time_history;
 
