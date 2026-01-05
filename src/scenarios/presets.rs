@@ -25,7 +25,7 @@ fn test_0() -> Result<Scenario> {
             position: Vector3::new(-5000.0, 2000.0, 0.0),
             velocity: Vector3::new(1200.0, 0.0, 0.0),
         })
-        .dt(0.000001) // 1000 Hz update rate
+        .dt(0.00001) // 1Mhz simulation timestep
         .total_time(60.0)
         .hit_threshold(10.0)
         .build()
@@ -44,7 +44,7 @@ fn test_1() -> Result<Scenario> {
             position: Vector3::new(5000.0, 0.0, 0.0),
             velocity: Vector3::new(100.0, 0.0, 1000.0),
         })
-        .dt(0.000001)
+        .dt(0.00001)
         .total_time(60.0)
         .hit_threshold(10.0)
         .build()
@@ -63,7 +63,7 @@ fn test_2() -> Result<Scenario> {
             position: Vector3::new(5000.0, 100.0, 0.0),
             velocity: Vector3::new(750.0, 0.0, 0.0),
         })
-        .dt(0.000001)
+        .dt(0.00001)
         .total_time(60.0)
         .hit_threshold(10.0)
         .build()
@@ -82,7 +82,7 @@ fn test_3() -> Result<Scenario> {
             position: Vector3::new(-5000.0, 2000.0, 5000.0),
             velocity: Vector3::new(1200.0, 0.0, 0.0),
         })
-        .dt(0.000001)
+        .dt(0.00001)
         .total_time(60.0)
         .hit_threshold(10.0)
         .build()

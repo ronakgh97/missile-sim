@@ -38,7 +38,6 @@ async fn run_sim(
     dt: Option<f64>,
     total_time: Option<f64>,
 ) -> Result<()> {
-
     let missile_position = Vector3::new(missile_args.m_x, missile_args.m_y, missile_args.m_z);
     let missile_velocity = Vector3::new(missile_args.m_vx, missile_args.m_vy, missile_args.m_vz);
     let target_position = Vector3::new(target_args.t_x, target_args.t_y, target_args.t_z);

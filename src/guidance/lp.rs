@@ -1,3 +1,4 @@
+use crate::core::{dot_simd, norm_simd, normalize_simd};
 use crate::entity::{Missile, Target};
 use crate::guidance::traits::GuidanceLaw;
 use nalgebra::Vector3;
@@ -29,7 +30,7 @@ impl GuidanceLaw for LeadPursuit {
         if missile_speed < 1e-6 {
             // No speed, just accelerate toward current target position
             let range_vec = target.state.position - missile.state.position;
-            let range = range_vec.norm();
+            let range = norm_simd(&range_vec);
             if range < 1e-6 {
                 return Vector3::zeros();
             }
@@ -38,7 +39,7 @@ impl GuidanceLaw for LeadPursuit {
 
         // Calculate intercept point using vector triangle method
         let range_vec = target.state.position - missile.state.position;
-        let range = range_vec.norm();
+        let range = norm_simd(&range_vec);
 
         if range < 1e-6 {
             return Vector3::zeros();
@@ -50,8 +51,8 @@ impl GuidanceLaw for LeadPursuit {
         let vm_sq = missile_speed * missile_speed;
 
         let a = vt_sq - vm_sq;
-        let b = 2.0 * range_vec.dot(vt);
-        let c = range_vec.norm_squared();
+        let b = 2.0 * dot_simd(&range_vec, vt);
+        let c = range * range;
 
         let mut intercept_point = target.state.position + vt * self.lead_time; // fallback
 
@@ -88,7 +89,7 @@ impl GuidanceLaw for LeadPursuit {
 
         // PURSUIT LOGIC TO INTERCEPT POINT
         let aim_vec = intercept_point - missile.state.position;
-        let aim_range = aim_vec.norm();
+        let aim_range = norm_simd(&aim_vec);
 
         // Damping factor to reduce aggressiveness at close range
         let damping = if aim_range < 1000.0 {
@@ -105,18 +106,19 @@ impl GuidanceLaw for LeadPursuit {
         let velocity_unit = missile.state.velocity / missile_speed;
 
         // Compute lateral (perpendicular) component needed to turn toward intercept
-        let lateral_component = aim_unit - velocity_unit * velocity_unit.dot(&aim_unit);
+        let dot_product = dot_simd(&velocity_unit, &aim_unit);
+        let lateral_component = aim_unit - velocity_unit * dot_product;
 
-        if lateral_component.norm() < 1e-12 {
+        let lateral_norm = norm_simd(&lateral_component);
+        if lateral_norm < 1e-12 {
             // Already aligned with intercept point
             return aim_unit * missile.max_acceleration;
         }
 
-        let lateral_unit = lateral_component.normalize();
+        let lateral_unit = normalize_simd(&lateral_component);
 
         // Acceleration magnitude based on required turn rate
-        let accel_magnitude =
-            missile.navigation_constant * missile_speed * lateral_component.norm() * damping;
+        let accel_magnitude = missile.navigation_constant * missile_speed * lateral_norm * damping;
 
         // Clamp to max acceleration
         lateral_unit * accel_magnitude.min(missile.max_acceleration)

@@ -1,4 +1,4 @@
-use crate::core::calculate_closing_speed;
+use crate::core::{calculate_closing_speed_simd, dot_simd, norm_simd, normalize_simd};
 use crate::entity::{Missile, Target};
 use crate::guidance::traits::GuidanceLaw;
 use nalgebra::Vector3;
@@ -14,7 +14,7 @@ pub struct DeviatedPursuit;
 impl GuidanceLaw for DeviatedPursuit {
     fn calculate_acceleration(&self, missile: &Missile, target: &Target) -> Vector3<f64> {
         let range_vec = target.state.position - missile.state.position;
-        let range = range_vec.norm();
+        let range = norm_simd(&range_vec);
 
         if range < 1e-6 {
             return Vector3::zeros();
@@ -31,7 +31,7 @@ impl GuidanceLaw for DeviatedPursuit {
         let velocity_unit = missile.state.velocity / missile_speed;
 
         // CLOSING SPEED AWARENESS
-        let closing_speed = calculate_closing_speed(
+        let closing_speed = calculate_closing_speed_simd(
             &missile.state.position,
             &missile.state.velocity,
             &target.state.position,
@@ -64,19 +64,21 @@ impl GuidanceLaw for DeviatedPursuit {
         };
 
         // TURN RATE CALCULATION
-        let lateral_component = range_unit - velocity_unit * velocity_unit.dot(&range_unit);
+        let dot_product = dot_simd(&velocity_unit, &range_unit);
+        let lateral_component = range_unit - velocity_unit * dot_product;
 
-        if lateral_component.norm() < 1e-12 {
+        let lateral_norm = norm_simd(&lateral_component);
+        if lateral_norm < 1e-12 {
             // Already aligned, accelerate forward
             return range_unit * missile.max_acceleration;
         }
 
-        let lateral_unit = lateral_component.normalize();
+        let lateral_unit = normalize_simd(&lateral_component);
 
         // Apply closing-based aggression and range damping
         let accel_magnitude = missile.navigation_constant
             * missile_speed
-            * lateral_component.norm()
+            * lateral_norm
             * closing_factor
             * range_damping;
 

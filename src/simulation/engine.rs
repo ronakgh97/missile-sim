@@ -1,4 +1,4 @@
-use crate::core::{calculate_closing_speed, calculate_los_rate};
+use crate::core::{calculate_closing_speed_simd, calculate_los_rate_simd, norm_simd};
 use crate::entity::{Missile, Target};
 use crate::guidance::GuidanceLaw;
 use crate::simulation::metrics::SimulationMetrics;
@@ -33,6 +33,11 @@ impl SimulationEngine {
     pub fn run(&mut self, guidance: &dyn GuidanceLaw) -> SimulationMetrics {
         let mut metrics = SimulationMetrics::new();
 
+        // Estimate number of steps for pre-allocation
+        let memory_cap: f64 = 128_0000.0; // Cap at 128 MB, BECAUSE IT GONNA BLOW UP 😼
+        let steps = ((self.max_time / self.dt).ceil() + 1.0).min(memory_cap) as usize;
+        metrics.pre_allocate_steps(steps);
+
         // Record initial state
         self.record_metrics(&mut metrics, 0.0);
 
@@ -44,6 +49,7 @@ impl SimulationEngine {
         metrics
     }
 
+    #[inline]
     pub fn step(&mut self, guidance: &dyn GuidanceLaw, metrics: &mut SimulationMetrics) {
         // Calculate guidance command
         let acceleration = guidance.calculate_acceleration(&self.missile, &self.target);
@@ -61,16 +67,17 @@ impl SimulationEngine {
         self.record_metrics(metrics, acceleration.norm());
     }
 
+    #[inline]
     fn record_metrics(&self, metrics: &mut SimulationMetrics, accel_magnitude: f64) {
-        let los_rate = calculate_los_rate(
+        let los_rate_vec = calculate_los_rate_simd(
             &self.missile.state.position,
             &self.missile.state.velocity,
             &self.target.state.position,
             &self.target.state.velocity,
-        )
-        .norm();
+        );
+        let los_rate = norm_simd(&los_rate_vec);
 
-        let closing_speed = calculate_closing_speed(
+        let closing_speed = calculate_closing_speed_simd(
             &self.missile.state.position,
             &self.missile.state.velocity,
             &self.target.state.position,
@@ -89,6 +96,7 @@ impl SimulationEngine {
         );
     }
 
+    #[inline]
     fn should_terminate(&self, metrics: &SimulationMetrics) -> bool {
         if self.time >= self.max_time {
             return true;

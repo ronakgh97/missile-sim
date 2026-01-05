@@ -1,3 +1,4 @@
+use crate::core::{dot_simd, norm_simd, normalize_simd};
 use crate::entity::{Missile, Target};
 use crate::guidance::traits::GuidanceLaw;
 use nalgebra::Vector3;
@@ -8,7 +9,7 @@ pub struct PurePursuit;
 impl GuidanceLaw for PurePursuit {
     fn calculate_acceleration(&self, missile: &Missile, target: &Target) -> Vector3<f64> {
         let range_vec = target.state.position - missile.state.position;
-        let range = range_vec.norm();
+        let range = norm_simd(&range_vec);
 
         if range < 1e-6 {
             return Vector3::zeros();
@@ -29,18 +30,19 @@ impl GuidanceLaw for PurePursuit {
 
         // Compute required turn direction
         // Perpendicular component of desired direction
-        let lateral_component = range_unit - velocity_unit * velocity_unit.dot(&range_unit);
+        let dot_product = dot_simd(&velocity_unit, &range_unit);
+        let lateral_component = range_unit - velocity_unit * dot_product;
 
-        if lateral_component.norm() < 1e-12 {
+        let lateral_norm = norm_simd(&lateral_component);
+        if lateral_norm < 1e-12 {
             // Already aligned
             return range_unit * missile.max_acceleration;
         }
 
-        let lateral_unit = lateral_component.normalize();
+        let lateral_unit = normalize_simd(&lateral_component);
 
         // Acceleration perpendicular to velocity
-        let accel_magnitude =
-            missile.navigation_constant * missile_speed * lateral_component.norm();
+        let accel_magnitude = missile.navigation_constant * missile_speed * lateral_norm;
 
         lateral_unit * accel_magnitude.min(missile.max_acceleration)
     }

@@ -23,6 +23,7 @@ path = "src/bin/generate_data.rs"
 tokio = { version = "1.49.0", features = ["full"] }
 clap = { version = "4.5.54", features = ["derive"] }
 plotters = "0.3.7"
+colored = "3.0.0"
 nalgebra = "0.34.1"
 serde = { version = "1.0.228", features = ["derive"] }
 serde_json = "1.0.145"

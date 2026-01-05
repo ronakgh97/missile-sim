@@ -1,4 +1,6 @@
-use crate::core::{calculate_closing_speed, calculate_los_rate};
+use crate::core::{
+    calculate_closing_speed_simd, calculate_los_rate_simd, dot_simd, norm_simd, normalize_simd,
+};
 use crate::entity::{Missile, Target};
 use crate::guidance::traits::GuidanceLaw;
 use nalgebra::Vector3;
@@ -36,7 +38,7 @@ impl GuidanceLaw for AugmentedProportionalNavigation {
         if missile_speed < 1e-6 {
             // No speed, just accelerate toward target
             let range_vec = target.state.position - missile.state.position;
-            let range = range_vec.norm();
+            let range = norm_simd(&range_vec);
             if range < 1e-6 {
                 return Vector3::zeros();
             }
@@ -44,31 +46,32 @@ impl GuidanceLaw for AugmentedProportionalNavigation {
         }
 
         // STANDARD PN COMPONENT
-        let los_rate_vector = calculate_los_rate(
+        let los_rate_vector = calculate_los_rate_simd(
             &missile.state.position,
             &missile.state.velocity,
             &target.state.position,
             &target.state.velocity,
         );
 
-        let los_rate_magnitude = los_rate_vector.norm();
+        let los_rate_magnitude = norm_simd(&los_rate_vector);
 
         if los_rate_magnitude < 1e-12 {
             return Vector3::zeros();
         }
 
-        let velocity_unit = missile.state.velocity.normalize();
-        let los_rate_unit = los_rate_vector.normalize();
+        let velocity_unit = normalize_simd(&missile.state.velocity);
+        let los_rate_unit = normalize_simd(&los_rate_vector);
 
         // PN acceleration direction (perpendicular to velocity)
-        let pn_accel_direction = los_rate_unit - velocity_unit * velocity_unit.dot(&los_rate_unit);
-        let pn_accel_direction = pn_accel_direction.normalize();
+        let dot_product = dot_simd(&velocity_unit, &los_rate_unit);
+        let pn_accel_direction = los_rate_unit - velocity_unit * dot_product;
+        let pn_accel_direction = normalize_simd(&pn_accel_direction);
 
         // PN acceleration magnitude (using missile speed)
         let pn_accel_magnitude = missile.navigation_constant * missile_speed * los_rate_magnitude;
 
         // --- ZERO EFFORT MISS (ZEM) COMPONENT ---
-        let closing_speed = calculate_closing_speed(
+        let closing_speed = calculate_closing_speed_simd(
             &missile.state.position,
             &missile.state.velocity,
             &target.state.position,
@@ -77,7 +80,8 @@ impl GuidanceLaw for AugmentedProportionalNavigation {
 
         // Calculate ZEM vector with better handling
         let zem_accel = if closing_speed > 1e-6 {
-            let range = (target.state.position - missile.state.position).norm();
+            let range_vec = target.state.position - missile.state.position;
+            let range = norm_simd(&range_vec);
             let time_to_go = range / closing_speed;
 
             // Clamp time-to-go to reasonable bounds
@@ -102,7 +106,7 @@ impl GuidanceLaw for AugmentedProportionalNavigation {
         let total_accel = pn_accel + zem_accel;
 
         // Clamp to max acceleration while preserving direction
-        let total_magnitude = total_accel.norm();
+        let total_magnitude = norm_simd(&total_accel);
         if total_magnitude > missile.max_acceleration {
             total_accel * (missile.max_acceleration / total_magnitude)
         } else {

@@ -34,6 +34,19 @@ impl SimulationMetrics {
         }
     }
 
+    /// Pre-allocate memory for all metric vectors
+    pub fn pre_allocate_steps(&mut self, steps: usize) {
+        self.missile_trajectory.reserve(steps);
+        self.missile_velocity.reserve(steps);
+        self.target_trajectory.reserve(steps);
+        self.target_velocity.reserve(steps);
+        self.time_history.reserve(steps);
+        self.distance_history.reserve(steps);
+        self.acceleration_history.reserve(steps);
+        self.los_rate_history.reserve(steps);
+        self.closing_speed_history.reserve(steps);
+    }
+
     pub fn record(
         &mut self,
         time: f64,
