@@ -16,17 +16,17 @@ pub struct Args {
 /// Missile simulation command line arguments
 #[derive(Parser, Debug, Clone)]
 pub struct MissileArgs {
-    /// Missile final position x-coordinate
-    #[arg(long = "m-xf")]
-    pub m_xf: f64,
+    /// Missile initial position x-coordinate
+    #[arg(long = "m-x")]
+    pub m_x: f64,
 
-    /// Missile final position y-coordinate
-    #[arg(long = "m-yf")]
-    pub m_yf: f64,
+    /// Missile initial position y-coordinate
+    #[arg(long = "m-y")]
+    pub m_y: f64,
 
-    /// Missile final position z-coordinate
-    #[arg(long = "m-zf")]
-    pub m_zf: f64,
+    /// Missile initial position z-coordinate
+    #[arg(long = "m-z")]
+    pub m_z: f64,
 
     /// Missile initial velocity x-component
     #[arg(long = "m-vx")]
@@ -56,17 +56,17 @@ pub struct MissileArgs {
 /// Target simulation command line arguments
 #[derive(Parser, Debug, Clone)]
 pub struct TargetArgs {
-    /// Target final position x-coordinate
-    #[arg(long = "t-xf")]
-    pub t_xf: f64,
+    /// Target initial position x-coordinate
+    #[arg(long = "t-x")]
+    pub t_x: f64,
 
-    /// Target final position y-coordinate
-    #[arg(long = "t-yf")]
-    pub t_yf: f64,
+    /// Target initial position y-coordinate
+    #[arg(long = "t-y")]
+    pub t_y: f64,
 
-    /// Target final position z-coordinate
-    #[arg(long = "t-zf")]
-    pub t_zf: f64,
+    /// Target initial position z-coordinate
+    #[arg(long = "t-z")]
+    pub t_z: f64,
 
     /// Target initial velocity x-component
     #[arg(long = "t-vx")]
@@ -99,7 +99,7 @@ pub enum Commands {
 
         /// Total simulation time
         #[arg(long)]
-        total_time: f64,
+        total_time: Option<f64>,
     },
 
     /// Prompt input for scenario generation
