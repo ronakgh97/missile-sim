@@ -4,6 +4,29 @@ use nalgebra::Vector3;
 use plotters::coord::cartesian::Cartesian3d;
 use plotters::coord::types::RangedCoordf64;
 use plotters::prelude::*;
+use std::fs;
+
+/// Default plot dimensions
+pub const DEFAULT_WIDTH: u32 = 1024;
+pub const DEFAULT_HEIGHT: u32 = 768;
+
+/// Render a 3D trajectory plot and save to file
+/// Creates directory if needed
+pub fn render_trajectory_3d(
+    metrics: &SimulationMetrics,
+    output_dir: &str,
+    scenario_name: &str,
+    guidance_name: &str,
+) -> Result<String> {
+    fs::create_dir_all(output_dir)?;
+    
+    let filename = format!("{output_dir}/{guidance_name}_trajectory.png");
+    let title = format!("{scenario_name} - {guidance_name}");
+    
+    plot_3d_trajectory(metrics, &filename, &title, DEFAULT_WIDTH, DEFAULT_HEIGHT)?;
+    
+    Ok(filename)
+}
 
 pub fn plot_3d_trajectory(
     metrics: &SimulationMetrics,

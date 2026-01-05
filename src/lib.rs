@@ -4,7 +4,7 @@ mod entity;
 mod guidance;
 mod scenarios;
 mod simulation;
-mod visualization;
+mod visual;
 
 pub mod prelude {
     pub use crate::core::{State3D, calculate_closing_speed, calculate_los_rate};
@@ -16,5 +16,5 @@ pub mod prelude {
     pub use crate::scenarios::load_preset_scenarios;
     pub use crate::scenarios::load_train_data;
     pub use crate::simulation::{Scenario, ScenarioBuilder, SimulationEngine, SimulationMetrics};
-    pub use crate::visualization::{PlottersRenderer, RenderConfig, Renderer};
+    pub use crate::visual::{render_metrics, render_trajectory_3d};
 }

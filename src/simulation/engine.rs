@@ -3,6 +3,7 @@ use crate::entity::{Missile, Target};
 use crate::guidance::GuidanceLaw;
 use crate::simulation::metrics::SimulationMetrics;
 
+/// Simulation engine that runs the missile-target engagement
 pub struct SimulationEngine {
     pub missile: Missile,
     pub target: Target,
@@ -30,11 +31,12 @@ impl SimulationEngine {
         }
     }
 
+    /// Run the simulation with the specified guidance law
     pub fn run(&mut self, guidance: &dyn GuidanceLaw) -> SimulationMetrics {
         let mut metrics = SimulationMetrics::new();
 
         // Estimate number of steps for pre-allocation
-        let memory_cap: f64 = 128_0000.0; // Cap at 128 MB, BECAUSE IT GONNA BLOW UP 😼
+        let memory_cap: f64 = 256_0000.0; // Cap at 256 MB, BECAUSE IT GONNA BLOW UP 😼
         let steps = ((self.max_time / self.dt).ceil() + 1.0).min(memory_cap) as usize;
         metrics.pre_allocate_steps(steps);
 
@@ -49,6 +51,7 @@ impl SimulationEngine {
         metrics
     }
 
+    /// Perform a single simulation step
     #[inline]
     pub fn step(&mut self, guidance: &dyn GuidanceLaw, metrics: &mut SimulationMetrics) {
         // Calculate guidance command
@@ -67,6 +70,7 @@ impl SimulationEngine {
         self.record_metrics(metrics, acceleration.norm());
     }
 
+    /// Record metrics for the current timestep
     #[inline]
     fn record_metrics(&self, metrics: &mut SimulationMetrics, accel_magnitude: f64) {
         let los_rate_vec = calculate_los_rate_simd(
@@ -96,6 +100,7 @@ impl SimulationEngine {
         );
     }
 
+    /// Determine if the simulation should terminate
     #[inline]
     fn should_terminate(&self, metrics: &SimulationMetrics) -> bool {
         if self.time >= self.max_time {

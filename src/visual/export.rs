@@ -77,10 +77,9 @@ impl SimulationMetrics {
         guidance_name: &str,
         output_dir: &str,
     ) -> Result<String> {
-        let dir = format!("{output_dir}/csv");
-        fs::create_dir_all(&dir)?;
+        fs::create_dir_all(output_dir)?;
 
-        let filename = format!("{dir}/{scenario_name}_{guidance_name}.csv");
+        let filename = format!("{output_dir}/{scenario_name}_{guidance_name}.csv");
         let mut file = File::create(&filename)?;
 
         // Write CSV header
@@ -122,15 +121,14 @@ impl SimulationMetrics {
     }
 
     /// Export metadata JSON using SimulationDataPoint
-    pub fn export_metadata(
+    pub fn export_json(
         &self,
         scenario_name: &str,
         guidance_name: &str,
         output_dir: &str,
         dt: f64,
     ) -> Result<String> {
-        let dir = format!("{output_dir}/json");
-        fs::create_dir_all(&dir)?;
+        fs::create_dir_all(output_dir)?;
 
         let data_points = self.build_data_points();
 
@@ -157,7 +155,7 @@ impl SimulationMetrics {
             dt,
         };
 
-        let filename = format!("{dir}/{scenario_name}_{guidance_name}.json");
+        let filename = format!("{output_dir}/{scenario_name}_{guidance_name}.json");
         let json = serde_json::to_string_pretty(&metadata)?;
         fs::write(&filename, json)?;
 
@@ -169,10 +167,14 @@ impl SimulationMetrics {
         &self,
         scenario_name: &str,
         guidance_name: &str,
-        output_dir: &str,
+        summary_file: &str,
     ) -> Result<()> {
-        let filename = format!("{output_dir}/summary.csv");
-        let path = Path::new(&filename);
+        let path = Path::new(summary_file);
+
+        // Create parent directory if needed
+        if let Some(parent) = path.parent() {
+            fs::create_dir_all(parent)?;
+        }
 
         // Create header if file doesn't exist
         if !path.exists() {

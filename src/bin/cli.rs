@@ -2,9 +2,9 @@ use anyhow::Result;
 use clap::Parser;
 use missile_sim::args::{Args, Commands, MissileArgs, TargetArgs};
 use missile_sim::prelude::{
-    AugmentedProportionalNavigation, GuidanceLaw, MissileConfig, PlottersRenderer,
-    PureProportionalNavigation, RenderConfig, Renderer, ScenarioBuilder, TargetConfig,
-    TrueProportionalNavigation,
+    AugmentedProportionalNavigation, GuidanceLaw, MissileConfig,
+    PureProportionalNavigation, ScenarioBuilder, TargetConfig,
+    TrueProportionalNavigation, render_trajectory_3d,
 };
 use nalgebra::Vector3;
 
@@ -31,7 +31,6 @@ async fn main() -> Result<()> {
     Ok(())
 }
 
-#[allow(unused)]
 async fn run_sim(
     missile_args: MissileArgs,
     target_args: TargetArgs,
@@ -71,9 +70,8 @@ async fn run_sim(
         Box::new(AugmentedProportionalNavigation::new(1.25)),
     ];
 
-    // Configure renderer
-    let renderer = PlottersRenderer::new();
-    let config = RenderConfig::default();
+    // Output directory
+    let output_dir = "plots/trajectories/cli";
 
     // Run simulations
 
@@ -84,10 +82,8 @@ async fn run_sim(
         let mut engine = scenario.to_engine();
         let metrics = engine.run(guidance.as_ref());
 
-        // Render plots
-        #[allow(unused)]
-        let _trajectory_file =
-            renderer.render_trajectory_3d(&metrics, &scenario.name, guidance.name(), &config);
+        // Render trajectory plot
+        let _ = render_trajectory_3d(&metrics, output_dir, &scenario.name, guidance.name());
 
         println!("{}", metrics.console_print());
     }

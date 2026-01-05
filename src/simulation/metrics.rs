@@ -17,6 +17,12 @@ pub struct SimulationMetrics {
     pub miss_distance: f64,
 }
 
+impl Default for SimulationMetrics {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl SimulationMetrics {
     pub fn new() -> Self {
         Self {
@@ -47,6 +53,8 @@ impl SimulationMetrics {
         self.closing_speed_history.reserve(steps);
     }
 
+    /// Record a single timestep's metrics
+    #[inline]
     pub fn record(
         &mut self,
         time: f64,
@@ -76,10 +84,12 @@ impl SimulationMetrics {
         }
     }
 
+    /// Finalize metrics after simulation ends
     pub fn finalize(&mut self, hit_threshold: f64) {
         self.hit = self.miss_distance < hit_threshold;
     }
 
+    /// Generate a console-friendly summary of key metrics
     pub fn console_print(&self) -> String {
         format!(
             "Travel Duration: {:.2} | Miss Distance: {:.2} | Hit: {}",
@@ -87,11 +97,5 @@ impl SimulationMetrics {
             self.miss_distance,
             if self.hit { "1" } else { "0" },
         )
-    }
-}
-
-impl Default for SimulationMetrics {
-    fn default() -> Self {
-        Self::new()
     }
 }

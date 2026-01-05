@@ -11,15 +11,15 @@ fn main() -> Result<()> {
     let guidance_laws: Vec<Box<dyn GuidanceLaw>> = vec![
         Box::new(PureProportionalNavigation),
         Box::new(TrueProportionalNavigation),
-        Box::new(AugmentedProportionalNavigation::new(1.0)),
+        Box::new(AugmentedProportionalNavigation::new(2.25)),
         Box::new(PurePursuit),
         Box::new(DeviatedPursuit),
-        Box::new(LeadPursuit::new(1.0)),
+        Box::new(LeadPursuit::new(1.75)),
     ];
 
-    // Configure renderer
-    let renderer = PlottersRenderer::new();
-    let config = RenderConfig::default();
+    // Output directories
+    let trajectories_dir = "plots/trajectories";
+    let metrics_dir = "plots/metrics";
 
     // Run simulations
     let combinations: Vec<(&Scenario, &Box<dyn GuidanceLaw>)> = scenarios
@@ -36,24 +36,15 @@ fn main() -> Result<()> {
         let mut engine = scenario.to_engine();
         let metrics = engine.run(guidance.as_ref());
 
-        // Render plots
-        #[allow(unused)]
-        let trajectory_file =
-            renderer.render_trajectory_3d(&metrics, &scenario.name, guidance.name(), &config);
+        // Render trajectory plot
+        let trajectory_dir = format!("{}/{}", trajectories_dir, scenario.name);
+        let _ = render_trajectory_3d(&metrics, &trajectory_dir, &scenario.name, guidance.name());
 
-        // Render Metrics
-        #[allow(unused)]
-        let metric_files =
-            renderer.render_metrics(&metrics, &scenario.name, guidance.name(), &config);
-
-        //let data_dir = config.data_dir();
-        //metrics.export_csv(&scenario.name, guidance.name(), &data_dir)?;
-        //metrics.export_metadata(&scenario.name, guidance.name(), &data_dir, scenario.dt)?;
-        //metrics.export_summary(&scenario.name, guidance.name(), &data_dir)?;
+        // Render metric plots
+        let metric_dir = format!("{}/{}", metrics_dir, scenario.name);
+        let _ = render_metrics(&metrics, &metric_dir, guidance.name());
 
         println!("{}", metrics.console_print());
-        //println!("  Trajectory plot: {}", _traj_file);
-        //println!("  Metrics: {:?} files", _metric_files.len());
     });
 
     Ok(())

@@ -8,7 +8,7 @@ fn main() -> Result<()> {
 
     // Load scenarios
     let scenarios = load_train_data();
-    let total = scenarios.len() * 2;
+    let total = scenarios.len() * 1;
 
     // Progress counter
     let completed = AtomicUsize::new(0);
@@ -18,12 +18,13 @@ fn main() -> Result<()> {
         Box::new(TrueProportionalNavigation),
     ];
 
-    let config = RenderConfig::default();
-    let data_dir = config.data_dir();
+    // Output paths
+    let summary_file = "data/summary.csv";
 
     // PARALLEL
     scenarios.par_iter().for_each(|scenario| {
         for guidance in &guidance_laws {
+
             // Run simulation
             let mut engine = scenario.to_engine();
             let metrics = engine.run(guidance.as_ref());
@@ -31,17 +32,17 @@ fn main() -> Result<()> {
             // Export data
             let guidance_name = guidance.name();
 
-            if let Err(e) = metrics.export_csv(&scenario.name, guidance_name, &data_dir) {
-                eprintln!("✗ CSV export failed: {}", e);
-            }
+            // if let Err(e) = metrics.export_csv(&scenario.name, guidance_name, "data/csv") {
+            //     eprintln!("✗ CSV export failed: {}", e);
+            // }
 
             /*if let Err(e) =
-                metrics.export_metadata(&scenario.name, guidance_name, &data_dir, scenario.dt)
+                metrics.export_json(&scenario.name, guidance_name, "data/json", scenario.dt)
             {
                 eprintln!("✗ Metadata export failed: {}", e);
             }*/
 
-            if let Err(e) = metrics.export_summary(&scenario.name, guidance_name, &data_dir) {
+            if let Err(e) = metrics.export_summary(&scenario.name, guidance_name, summary_file) {
                 eprintln!("✗ Summary export failed: {}", e);
             }
 

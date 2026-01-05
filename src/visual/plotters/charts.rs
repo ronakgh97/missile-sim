@@ -1,6 +1,24 @@
 use crate::simulation::SimulationMetrics;
 use anyhow::{Context, Result};
+use nalgebra::Vector3;
 use plotters::prelude::*;
+use std::fs;
+
+/// Default plot dimensions for metric charts
+pub const DEFAULT_METRIC_WIDTH: u32 = 682;  // 1024 * 2/3
+pub const DEFAULT_METRIC_HEIGHT: u32 = 512; // 768 * 2/3
+
+/// Render all metric plots for a simulation run
+/// Creates directory if needed and saves all metric charts
+pub fn render_metrics(
+    metrics: &SimulationMetrics,
+    output_dir: &str,
+    guidance_name: &str,
+) -> Result<Vec<String>> {
+    fs::create_dir_all(output_dir)?;
+    let base_name = format!("{output_dir}/{guidance_name}");
+    plot_all_metrics(metrics, &base_name, DEFAULT_METRIC_WIDTH, DEFAULT_METRIC_HEIGHT)
+}
 
 pub fn plot_metric_chart(
     time: &[f64],
@@ -19,7 +37,7 @@ pub fn plot_metric_chart(
     let max_val = values.iter().cloned().fold(f64::NEG_INFINITY, f64::max) * 1.05;
 
     let mut chart = ChartBuilder::on(&root)
-        .caption(title, ("sans-serif", 40))
+        .caption(title, ("0xProto Nerd Font", 30))
         .margin(20)
         .x_label_area_size(50)
         .y_label_area_size(70)
@@ -72,7 +90,7 @@ pub fn plot_comparison_chart(
     global_max *= 1.05;
 
     let mut chart = ChartBuilder::on(&root)
-        .caption(title, ("sans-serif", 40))
+        .caption(title, ("0xProto Nerd Font", 30))
         .margin(20)
         .x_label_area_size(50)
         .y_label_area_size(70)
@@ -85,7 +103,7 @@ pub fn plot_comparison_chart(
         .configure_mesh()
         .x_desc("Time (s)")
         .y_desc(y_label)
-        .label_style(("sans-serif", 20))
+        .label_style(("0xProto Nerd Font", 20))
         .draw()?;
 
     // Draw each series
@@ -103,7 +121,7 @@ pub fn plot_comparison_chart(
         .configure_series_labels()
         .background_style(WHITE.mix(0.8))
         .border_style(BLACK)
-        .label_font(("sans-serif", 20))
+        .label_font(("0xProto Nerd Font", 20))
         .draw()?;
 
     root.present()?;
@@ -153,7 +171,7 @@ pub fn plot_all_metrics(
         time,
         &metrics.acceleration_history,
         &filename,
-        "Lateral Acceleration (Guidance Command)",
+        "Lateral Acceleration",
         "Acceleration (m/s²)",
         width,
         height,
@@ -200,7 +218,7 @@ pub fn plot_all_metrics(
 // HELPER FUNCTIONS
 
 /// Calculate speed magnitude from position history
-fn calculate_speed_history(positions: &[nalgebra::Vector3<f64>], time: &[f64]) -> Vec<f64> {
+fn calculate_speed_history(positions: &[Vector3<f64>], time: &[f64]) -> Vec<f64> {
     let mut speeds = Vec::new();
 
     for i in 1..positions.len() {
