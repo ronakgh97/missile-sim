@@ -1,3 +1,5 @@
+#[allow(unused)]
+use clap::builder::ValueParser;
 use clap::{Parser, Subcommand};
 
 #[derive(Parser)]
@@ -17,27 +19,27 @@ pub struct Args {
 #[derive(Parser, Debug, Clone)]
 pub struct MissileArgs {
     /// Missile initial position x-coordinate
-    #[arg(long = "m-x")]
+    #[arg(long = "m-x", allow_negative_numbers = true)]
     pub m_x: f64,
 
     /// Missile initial position y-coordinate
-    #[arg(long = "m-y")]
+    #[arg(long = "m-y", allow_negative_numbers = true)]
     pub m_y: f64,
 
     /// Missile initial position z-coordinate
-    #[arg(long = "m-z")]
+    #[arg(long = "m-z", allow_negative_numbers = true)]
     pub m_z: f64,
 
     /// Missile initial velocity x-component
-    #[arg(long = "m-vx")]
+    #[arg(long = "m-vx", allow_negative_numbers = true)]
     pub m_vx: f64,
 
     /// Missile initial velocity y-component
-    #[arg(long = "m-vy")]
+    #[arg(long = "m-vy", allow_negative_numbers = true)]
     pub m_vy: f64,
 
     /// Missile initial velocity z-component
-    #[arg(long = "m-vz")]
+    #[arg(long = "m-vz", allow_negative_numbers = true)]
     pub m_vz: f64,
 
     /// Missile maximum acceleration
@@ -57,27 +59,27 @@ pub struct MissileArgs {
 #[derive(Parser, Debug, Clone)]
 pub struct TargetArgs {
     /// Target initial position x-coordinate
-    #[arg(long = "t-x")]
+    #[arg(long = "t-x", allow_negative_numbers = true)]
     pub t_x: f64,
 
     /// Target initial position y-coordinate
-    #[arg(long = "t-y")]
+    #[arg(long = "t-y", allow_negative_numbers = true)]
     pub t_y: f64,
 
     /// Target initial position z-coordinate
-    #[arg(long = "t-z")]
+    #[arg(long = "t-z", allow_negative_numbers = true)]
     pub t_z: f64,
 
     /// Target initial velocity x-component
-    #[arg(long = "t-vx")]
+    #[arg(long = "t-vx", allow_negative_numbers = true)]
     pub t_vx: f64,
 
     /// Target initial velocity y-component
-    #[arg(long = "t-vy")]
+    #[arg(long = "t-vy", allow_negative_numbers = true)]
     pub t_vy: f64,
 
     /// Target initial velocity z-component
-    #[arg(long = "t-vz")]
+    #[arg(long = "t-vz", allow_negative_numbers = true)]
     pub t_vz: f64,
 }
 
@@ -94,10 +96,12 @@ pub enum Commands {
         target: TargetArgs,
 
         /// Time step (optional)
+        //#[arg(long, value_parser = ValueParser::new(|v: &str| v.parse::<f64>().map_err(|_| "Invalid number")))]
         #[arg(long)]
         dt: Option<f64>,
 
         /// Total simulation time
+        //#[arg(long, value_parser = ValueParser::new(|v: &str| v.parse::<f64>().map_err(|_| "Invalid number")))]
         #[arg(long)]
         total_time: Option<f64>,
     },

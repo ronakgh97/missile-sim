@@ -5,6 +5,7 @@ use missile_sim::prelude::{
     GuidanceLawType, MissileConfig, ScenarioBuilder, TargetConfig, render_trajectory_3d,
 };
 use nalgebra::Vector3;
+use rayon::prelude::*;
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -16,9 +17,6 @@ async fn main() -> Result<()> {
             dt,
             total_time,
         }) => {
-            println!("\nMissile Args: {:#?}", missile);
-            println!("Target Args: {:#?}", target);
-            println!("dt: {:?}, total_time: {:?}", dt, total_time);
             run_sim(missile, target, dt, total_time).await?;
         }
         Some(Commands::Prompt { .. }) => {}
@@ -69,21 +67,24 @@ async fn run_sim(
     ];
 
     // Output directory
-    let output_dir = "plots/trajectories/cli";
+    let output_dir = ".";
 
-    // Run simulations
+    // Run simulations in parallel using rayon
+    let results: Vec<_> = guidance_laws
+        .par_iter()
+        .map(|guidance| {
+            let mut output = String::new();
+            output += &format!(" Testing {} ", guidance.name());
+            let mut engine = scenario.to_engine();
+            let metrics = engine.run(guidance);
+            let _ = render_trajectory_3d(&metrics, output_dir, &scenario.name, guidance.name());
+            output += &format!("{}\n", metrics.console_print());
+            output
+        })
+        .collect();
 
-    for guidance in &guidance_laws {
-        print!(" Testing {} ", guidance.name());
-
-        // Create engine and run simulation
-        let mut engine = scenario.to_engine();
-        let metrics = engine.run(guidance);
-
-        // Render trajectory plot
-        let _ = render_trajectory_3d(&metrics, output_dir, &scenario.name, guidance.name());
-
-        println!("{}", metrics.console_print());
+    for result in results {
+        print!("{}", result);
     }
 
     println!();

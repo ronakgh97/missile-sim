@@ -11,17 +11,19 @@ path = "src/lib.rs"
 name = "ms"
 path = "src/bin/cli.rs"
 
-[[bin]]
-name = "plot"
-path = "src/bin/plot.rs"
-
-[[bin]]
-name = "data"
-path = "src/bin/generate_data.rs"
+[profile.release]
+opt-level = 3
+lto = "fat"
+codegen-units = 1
+panic = "abort"
+strip = false
+incremental = false
+debug = false
 
 [dependencies]
 tokio = { version = "1.49.0", features = ["full"] }
 clap = { version = "4.5.54", features = ["derive"] }
+# async-trait = "0.1.89"
 plotters = "0.3.7"
 colored = "3.0.0"
 nalgebra = "0.34.1"
