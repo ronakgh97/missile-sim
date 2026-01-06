@@ -1,68 +1,226 @@
-# Missile Simulation
+# Missile Guidance Simulation
 
-A simple project that simulates missile guidance systems in various combat scenarios.
-This tool helps you explore the dynamics of proportional navigation laws by running realistic simulations and
-visualizing the results through 3D plots, performance metrics and generate data model training.
+A high-performance missile guidance system simulator supporting multiple guidance laws in 3D combat scenarios.
+This tool enables exploration of proportional navigation dynamics through realistic simulations with 3D trajectory
+plots, performance metrics, and machine learning dataset generation.
 
-## Features
+## Little Overview
 
-- **Multiple Guidance Laws**: Supports Pure Proportional Navigation (PPN) and True Proportional Navigation (TPN) and more.
-- **Diverse Scenarios**: Includes scenarios like perpendicular-intercept, side-intercept, air strikes, ground launch
-  and more.
-- **Physics with Assumption**: Uses basic kinematics with configurable missile and target parameters.
-- **Visualization**: Generates trajectory plots and metric charts using Plotters.
-- **Train Data Generation**: Outputs data suitable for training machine learning models.
-- **Extensible**: Easy to add new guidance laws, scenarios, or renderers.
-- **Three separate binaries**: For Plotting, debugging and data generation.
+- **Multiple Guidance Laws**: Supports PPN, TPN, APN, Pure Pursuit (PP), Deviated Pursuit (DP), and Lead Pursuit (LP)
+- **Diverse Scenarios**: Includes perpendicular-intercept, side-intercept, air strikes, and ground launch scenarios
+- **High-Fidelity Physics**: Uses simple kinematics with configurable missile and target parameters
+- **Parallel Processing**: Utilizes Rayon for parallel simulation execution and burns your CPU cores
+- **Visualization**: Generates trajectory plots and metric charts using Plotters
+- **Extensible Architecture**: Easy to add new guidance laws, scenarios, or renderers
 
-## Prerequisites
+## Guidance Laws
 
-- Rust
-- Cargo
-- Conda (for Notebooks)
+This simulator implements six different guidance laws:
 
-## PLOTS
+- **Pure Proportional Navigation (PPN)**: Classical guidance using line-of-sight rate
+    - `a_c = N × V_m × λ̇`
+    - N = Navigation constant (typically 3-5)
 
-   ```shell
-   cargo build
-   cargo run --bin plot
-   ```
+- **True Proportional Navigation (TPN)**: Accounts for closing speed in addition to LOS rate
+    - `a_c = N × V_c × λ̇`
+    - V_c = Closing velocity
 
-- The [binary](src/bin/plot.rs) will simulate each scenario with both PPN and TPN, printing progress to the console and
-  saving plots to the `plots/` directory.
+- **Augmented Proportional Navigation (APN)**: Adds target acceleration compensation
+    - `a_c = N × V_c × λ̇ + (N/2) × a_t`
+    - a_t = Target acceleration (estimated)
 
-- You add more preset scenarios or modify existing ones in the `src/scenarios/`
-  directory, [Presets](src/scenarios/presets.rs), Consider setting the dt to `1000 hz ~ 0.0001s` from high speed
-  missile,
+- **Pure Pursuit (PP)**: Aims directly at target's current position
+    - Simple pursuit strategy, often inefficient against maneuvering targets
 
-- Hit feedback in console
+- **Deviated Pursuit (DP)**: Pursuit with deviation angle correction
+    - Improved pursuit with angular correction
 
-```bash
- Scenario: Perpendicular-Intercept
-    Testing PPN Travel Duration: 2.69 | Miss Distance: 4.77 | Hit: 1
-    Testing TPN Travel Duration: 2.63 | Miss Distance: 4.78 | Hit: 1
+- **Lead Pursuit (LP)**: Aims ahead of target with configurable lead factor
+    - `a_c = K × (target_predicted_pos - missile_pos)`
+    - K = Lead factor
 
- Scenario: Ground-Launch-Strike
-    Testing PPN Travel Duration: 6.17 | Miss Distance: 4.93 | Hit: 1
-    Testing TPN Travel Duration: 6.96 | Miss Distance: 4.97 | Hit: 1
+See [HOMING_MATHS.md](docs/HOMING_MATHS.md) for detailed mathematical derivations.
 
- Scenario: Air-Strike
-    Testing PPN Travel Duration: 4.21 | Miss Distance: 4.85 | Hit: 1
-    Testing TPN Travel Duration: 4.24 | Miss Distance: 4.87 | Hit: 1
+## Binaries
 
- Scenario: Side-Intercept
-    Testing PPN Travel Duration: 4.82 | Miss Distance: 4.88 | Hit: 1
-    Testing TPN Travel Duration: 4.80 | Miss Distance: 4.91 | Hit: 1
+### 1. CLI Tool (ms)
+
+Interactive command-line interface for running custom scenarios:
+
+```shell
+
+    (x0, y0, z0)
+     ●  •  •  •  •  •  • .
+                           •
+    ▄▄▄      ▄▄▄  ▄▄▄▄▄▄▄    •
+    ████▄  ▄████ █████▀▀▀     •
+    ███▀████▀███  ▀████▄       •
+    ███  ▀▀  ███    ▀████      •
+    ███      ███ ███████▀     •
+                            •
+    ● • • • • • • • • • • X
+    (x1, y1, z1)          (x2, y2, z2)
+
 ```
 
-### Hardcoded Scenarios
+Run a custom scenario with specific parameters:
+
+```shell
+cargo run --bin ms --release -- run \
+  --m-x 500.0 --m-y 0.0 --m-z 0.0 \
+  --m-vx 0.0 --m-vy 1250.0 --m-vz 0.0 \
+  --m-a-max 1500.0 --m-n 5.0 --m-v-closing-max 8000.0 \
+  --t-x -5000.0 --t-y 2000.0 --t-z 0.0 \
+  --t-vx 1200.0 --t-vy 0.0 --t-vz 0.0 \
+  --dt 0.0001 --total-time 30.0
+```
+
+The CLI supports:
+
+- Custom missile configuration (position, velocity, max acceleration, navigation constant)
+- Custom target configuration (position, velocity)
+- Configurable simulation parameters (timestep, duration, Navigation constant)
+- Tests with PPN, TPN, and APN guidance laws, the base ones
+- Parallel execution using Rayon
+
+### 2. Plot Generator
+
+Generate trajectory and metric plots for preset scenarios:
+
+```shell
+cargo run --bin plot --release
+```
+
+This binary simulates all preset scenarios with multiple guidance laws, printing progress to the console and
+saving plots to the `plots/` directory.
+
+**Supported Guidance Laws:**
+
+- Pure Proportional Navigation (PPN)
+- True Proportional Navigation (TPN)
+- Augmented Proportional Navigation (APN)
+- Pure Pursuit (PP)
+- Deviated Pursuit (DP)
+- Lead Pursuit (LP)
+
+Output structure:
+
+- `plots/trajectories/{scenario}/{law}_trajectory.png` - 3D trajectory plots
+- `plots/metrics/{scenario}/{law}_*.png` - Metric charts (closing velocity, lateral acceleration, LOS rate, etc.)
+
+You can modify preset scenarios in `src/scenarios/presets.rs`. For high-speed missiles, consider setting dt to
+`0.00001` (100kHz update rate).
+
+Console output example:
+
+```bash
+Scenario: Perpendicular-Intercept | Guidance: LP
+Travel Duration: 2.60 | Miss Distance: 9.99 | Hit: 1
+
+Scenario: Perpendicular-Intercept | Guidance: TPN
+Travel Duration: 2.63 | Miss Distance: 9.98 | Hit: 1
+
+Scenario: Perpendicular-Intercept | Guidance: PPN
+Travel Duration: 2.68 | Miss Distance: 9.98 | Hit: 1
+
+Scenario: Perpendicular-Intercept | Guidance: APN
+Travel Duration: 3.50 | Miss Distance: 9.99 | Hit: 1
+
+Scenario: Side-Intercept | Guidance: LP
+Travel Duration: 4.38 | Miss Distance: 9.99 | Hit: 1
+
+Scenario: Side-Intercept | Guidance: PPN
+Travel Duration: 4.67 | Miss Distance: 9.99 | Hit: 1
+
+Scenario: Air-Strike | Guidance: APN
+Travel Duration: 5.10 | Miss Distance: 9.98 | Hit: 1
+
+Scenario: Air-Strike | Guidance: LP
+Travel Duration: 5.17 | Miss Distance: 9.98 | Hit: 1
+
+Scenario: Air-Strike | Guidance: TPN
+Travel Duration: 5.17 | Miss Distance: 9.99 | Hit: 1
+
+Scenario: Side-Intercept | Guidance: TPN
+Travel Duration: 4.65 | Miss Distance: 9.98 | Hit: 1
+
+Scenario: Ground-Launch-Strike | Guidance: APN
+Travel Duration: 5.60 | Miss Distance: 10.00 | Hit: 1
+
+Scenario: Side-Intercept | Guidance: APN
+Travel Duration: 5.33 | Miss Distance: 9.99 | Hit: 1
+
+Scenario: Ground-Launch-Strike | Guidance: PPN
+Travel Duration: 6.17 | Miss Distance: 9.99 | Hit: 1
+
+Scenario: Ground-Launch-Strike | Guidance: LP
+Travel Duration: 6.11 | Miss Distance: 10.00 | Hit: 1
+
+Scenario: Air-Strike | Guidance: PPN
+Travel Duration: 5.17 | Miss Distance: 9.99 | Hit: 1
+
+Scenario: Ground-Launch-Strike | Guidance: TPN
+Travel Duration: 6.96 | Miss Distance: 10.00 | Hit: 1
+
+Scenario: Ground-Launch-Strike | Guidance: PP
+Travel Duration: 8.53 | Miss Distance: 10.00 | Hit: 1
+
+Scenario: Ground-Launch-Strike | Guidance: DP
+Travel Duration: 8.51 | Miss Distance: 10.00 | Hit: 1
+
+Scenario: Air-Strike | Guidance: PP
+Travel Duration: 10.65 | Miss Distance: 10.00 | Hit: 1
+
+Scenario: Air-Strike | Guidance: DP
+Travel Duration: 10.60 | Miss Distance: 9.99 | Hit: 1
+
+Scenario: Side-Intercept | Guidance: PP
+Travel Duration: 27.02 | Miss Distance: 10.00 | Hit: 1
+
+Scenario: Side-Intercept | Guidance: DP
+Travel Duration: 26.77 | Miss Distance: 10.00 | Hit: 1
+
+Scenario: Perpendicular-Intercept | Guidance: PP
+Travel Duration: 41.93 | Miss Distance: 10.00 | Hit: 1
+
+Scenario: Perpendicular-Intercept | Guidance: DP
+Travel Duration: 45.22 | Miss Distance: 10.00 | Hit: 1
+```
+
+### 3. Data Generator
+
+Generate machine learning datasets with randomized scenarios:
+
+```shell
+cargo run --bin generate_data --release
+```
+
+This binary creates randomized scenarios and exports summary data for Data analysis and applications.
+
+Default configuration:
+
+- **Run count**: 100 scenarios
+- **Timestep**: 0.0001s (10kHz update rate)
+- **Duration**: 30 seconds per scenario
+- **Guidance laws tested**: PPN, TPN, APN
+
+Output files:
+
+- `summary.csv` - Tabular format with scenario name, guidance law, duration, miss distance, hit status, and timesteps
+- `summary.json` - JSON array format with the same data
+
+Query successful hits:
+
+```shell
+rg ",1," summary.csv | wc -l
+```
+
+## Example Scenarios
+
+### Preset Scenarios
 
 ```rust
-pub fn load_preset_scenarios() -> Vec<Scenario> {
-    vec![test_0(), test_1(), test_2(), test_3()]
-}
-
-fn test_0() -> Scenario {
+async fn test_0() -> Result<Scenario> {
     ScenarioBuilder::new("Perpendicular-Intercept")
         .missile_config(MissileConfig {
             position: Vector3::new(500.0, 0.0, 0.0),
@@ -75,9 +233,9 @@ fn test_0() -> Scenario {
             position: Vector3::new(-5000.0, 2000.0, 0.0),
             velocity: Vector3::new(1200.0, 0.0, 0.0),
         })
-        .dt(0.0001) // 10000 Hz update rate
-        .total_time(30.0)
-        .hit_threshold(5.0)
+        .dt(0.00001) // 100kHz update rate (1MHz simulation timestep)
+        .total_time(60.0)
+        .hit_threshold(10.0)
         .build()
 }
 
@@ -93,136 +251,47 @@ fn test_0() -> Scenario {
 ![Metrics_1](PPN_los_angular_rate.png)
 ![Metrics_2](TPN_closing_velocity.png)
 
-### Guidance Laws
+## Data Export
 
-- **Pure Proportional Navigation (PPN)**: Uses `line-of-sight rate` for guidance.
-- **True Proportional Navigation (TPN)**: Accounts for `closing speed` in addition to LOS rate.
+The simulator exports summary data in two formats for machine learning applications:
 
-## REAL-TIME DEBUG AND VISUAL
-
-```shell
-cargo build
-cargo run --bin debug
-```
-
-- This [binary](src/bin/debug.rs) opens a window to simulate the loaded scenario in real-time showing velocity vectors,
-  shortest path, trajectory and metrics in debug
-  panel (USES RAYLIB)
-
-- Real-Time Closing speed is helpful, because as it gets never -ve, the missile will never home toward the target
-
-### Controls
-
-- Key C: Change Camera Mode, ["Missile" or "Target"]
-
-```rust
-#[derive(Debug, Clone, Copy, PartialEq)]
-enum CameraMode {
-    Missile,
-    Target,
-    XY, //TODO
-    XZ, //TODO
-    YZ, //TODO
-
-}
-```
-
-- Mouse Left: Controls Camera, free lock about the Target
--
-
-```rust
-// Camera settings
-const CAM_SENSITIVITY: f32 = 0.005;
-const CAM_ZOOM_SPEED: f32 = 50.0;
-const CAM_PITCH_MIN: f32 = -1.5;
-const CAM_PITCH_MAX: f32 = 1.5;
-const CAM_DISTANCE_MIN: f32 = 100.0;
-const CAM_DISTANCE_MAX: f32 = 5000.0;
-const CAM_DEFAULT_DISTANCE: f32 = 500.0;
-const CAM_DEFAULT_YAW: f32 = 0.0;
-const CAM_DEFAULT_PITCH: f32 = 0.5;
-```
-
-- Key T: Change guidance logic, ["PPN" or "TPN"]
-
-```rust
-#[derive(Debug, Clone, Copy, PartialEq)]
-enum GuidanceType {
-    PureChase, //TODO
-    PurePN,
-    TruePN,
-    AugmentedPN, //TODO
-}
-```
-
-### Little Debug Demo
-
-![Demo](debug_demo.gif)
-
-## DATA GEN
-
-- This [binary](src/bin/generate_data.rs) will generate nth dataset with about 10 features+ for model trainings.
-
-- You add more or modify existing generation logic in the `src/scenarios/`
-  directory, [Data](src/scenarios/train_data.rs),
-
-```rust
-pub fn load_train_data() -> Vec<Scenario> {
-    let mut scenarios = Vec::new();
-
-    for seed in 0..200 {
-        scenarios.push(generate_random_scenario(seed));
-    }
-
-    scenarios
-}
-```
-
-- Data summary is also generated, give hit feedback and other info about all scenario generated
-
-```shell
-rg ",1," data/summary.csv | wc -l
-```
-
-- Data sets, and summary are saved as CSV and JSON in the `data/` directory for each scenario and guidance law.
-
-### Extracted Data Point
+### Summary Metadata Structure
 
 ```rust
 #[derive(Serialize, Deserialize)]
-pub struct SimulationDataPoint {
-    pub time: f64,
-    pub missile_x: f64,
-    pub missile_y: f64,
-    pub missile_z: f64,
-    pub missile_vx: f64,
-    pub missile_vy: f64,
-    pub missile_vz: f64,
-    pub target_x: f64,
-    pub target_y: f64,
-    pub target_z: f64,
-    pub target_vx: f64,
-    pub target_vy: f64,
-    pub target_vz: f64,
-    pub distance: f64,
-    pub acceleration: f64,
-    pub los_rate: f64,
-
-    /// Closing speed (rate of range decrease) - recorded for all guidance laws
-    /// for analysis purposes. Used directly by TPN, recorded for PPN comparison.
-    pub closing_speed: f64,
+pub struct SimulationMetadata {
+    pub scenario_name: String,
+    pub guidance_law: String,
+    pub duration: f64,
+    pub miss_distance: f64,
     pub hit: bool,
+    pub timesteps: usize,
 }
 ```
 
-Sample CSV
+### Sample CSV Output
 
 ```csv
-time,missile_x,missile_y,missile_z,missile_vx,missile_vy,missile_vz,target_x,target_y,target_z,target_vx,target_vy,target_vz,distance,acceleration,los_rate,closing_speed,hit
-0,924.4536634548181,2433.650460883095,-1896.6214630665804,-131.9474980288427,481.70098016178787,1722.1082199140278,2153.316025960237,2373.3460727481825,-6257.671352754478,1428.235486694958,-314.03209977931226,-33.05345822773355,4531.279671964373,0,0.28271598427137545,-2122.928771626081,0
-0.0001,924.4404781229246,2433.6986236429743,-1896.449249470398,-131.85331893555048,481.62759879426744,1722.1359618246895,2153.4588495089065,2373.3146695382047,-6257.674658100301,1428.235486694958,-314.03209977931226,-33.05345822773355,4531.491966670209,1225.7299996196357,0.2826624472662804,-2122.965162088819,0
-0.0002,924.4273022089315,2433.746779064408,-1896.2770331008112,-131.75913993135254,481.55421433864404,1722.1636958680444,2153.601673057576,2373.283266328227,-6257.677963446124,1428.235486694958,-314.03209977931226,-33.05345822773355,4531.704265013386,1225.7299996196357,0.2826089173274708,-2123.001529480879,0
-0.00030000000000000003,924.4141357128298,2433.794927147088,-1896.1048139586069,-131.6649610163498,481.48082679567824,1722.191422043872,2153.744496606246,2373.2518631182493,-6257.681268791946,1428.235486694958,-314.03209977931226,-33.05345822773355,4531.9165669915965,1225.7299996196357,0.2825553944543698,-2123.
+scenario,guidance_law,duration,miss_distance,hit,timesteps
+random_0,PPN,12.45,4.23,1,124500
+random_0,TPN,12.38,4.19,1,123800
+random_0,APN,12.41,4.15,1,124100
+random_1,PPN,8.92,3.87,1,89200
 ```
 
-#### Hire me EA 🥲🙏
+Modify generation logic in `src/scenarios/random_data.rs` to customize:
+
+- Number of scenarios
+- Random parameter ranges
+- Simulation timestep and duration
+- Output location
+
+## Technical Details
+
+### Performance Optimizations
+
+- **SIMD Acceleration**: Uses the `wide` crate for SIMD-optimized vector operations
+- **Parallel Execution**: Rayon-based parallelism for batch simulations (Arc and Mutex thingy for thread safety 😵‍💫 😵)
+- **Zero-Copy Operations**: Efficient memory management with pre-allocated buffers
+
+
