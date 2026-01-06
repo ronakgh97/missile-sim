@@ -1,5 +1,6 @@
 use anyhow::Result;
 use clap::Parser;
+use colored::Colorize;
 use missile_sim::args::{Args, Commands, MissileArgs, TargetArgs};
 use missile_sim::prelude::{
     GuidanceLawType, MissileConfig, ScenarioBuilder, TargetConfig, render_trajectory_3d,
@@ -21,7 +22,7 @@ async fn main() -> Result<()> {
         }
         Some(Commands::Prompt { .. }) => {}
         None => {
-            println!("No subcommand provided. Use --help for usage.");
+            print_art().await;
         }
     }
     Ok(())
@@ -90,4 +91,29 @@ async fn run_sim(
     println!();
 
     Ok(())
+}
+
+async fn print_art() {
+    let art = format!(
+        r#"
+
+    {}
+     ●  •  •  •  •  •  • .
+                           •
+    ▄▄▄      ▄▄▄  ▄▄▄▄▄▄▄    •
+    ████▄  ▄████ █████▀▀▀     •
+    ███▀████▀███  ▀████▄       •
+    ███  ▀▀  ███    ▀████      •
+    ███      ███ ███████▀     •
+                            •
+    ● • • • • • • • • • • X
+    {}          {}
+
+    "#,
+        "(x0, y0, z0)".to_string().red(),
+        "(x1, y1, z1)".to_string().green(),
+        "(x2, y2, z2)".to_string().bright_blue().bold()
+    );
+
+    println!("{}\n", art.to_string());
 }
