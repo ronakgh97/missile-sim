@@ -9,10 +9,10 @@ fn main() -> Result<()> {
     println!("\nGenerating data...\n");
 
     // Random data generator, auto creates data directory and summary file
-    let path = PathBuf::from("data");
-    let random_data_generator = RandomData::init(100, &path); //TODO: This should auto creates summary file, so parallel writing wont corrupt it
+    let path = PathBuf::from(".");
     let summary_csv = path.join("summary.csv");
     let summary_json = path.join("summary.json");
+    let random_data_generator = RandomData::init(100, &path, &summary_csv, &summary_json);
 
     // Define guidance laws to test
     let guidance_laws: Vec<GuidanceLawType> = vec![

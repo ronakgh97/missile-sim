@@ -15,18 +15,29 @@ pub struct RandomData {
 }
 
 impl RandomData {
-    pub fn init(run_count: u64, output_dir: &PathBuf) -> Self {
+    pub fn init(
+        run_count: u64,
+        output_dir: &PathBuf,
+        csv_file: &PathBuf,
+        json_file: &PathBuf,
+    ) -> Self {
         // Create output directory if it doesn't exist
         std::fs::create_dir_all(output_dir).unwrap();
 
         // Create Summary CSV file with header
-        let summary_path = output_dir.join("summary.csv");
-        let mut file = std::fs::File::create(&summary_path).unwrap();
+        let summary_csv = output_dir.join(csv_file);
+        let mut file = std::fs::File::create(&summary_csv).unwrap();
         writeln!(
             file,
             "scenario,guidance_law,duration,miss_distance,hit,timesteps"
         )
         .unwrap();
+        drop(file);
+
+        // Create Summary JSON file with empty array
+        let summary_json = output_dir.join(json_file);
+        let mut file = std::fs::File::create(&summary_json).unwrap();
+        writeln!(file, "[]").unwrap();
         drop(file);
 
         Self {

@@ -1,4 +1,5 @@
 use anyhow::Result;
+use colored::Colorize;
 use missile_sim::prelude::*;
 use rayon::iter::IntoParallelRefIterator;
 use rayon::iter::ParallelIterator;
@@ -45,7 +46,12 @@ async fn main() -> Result<()> {
         let metric_dir = format!("{}/{}", metrics_dir, scenario.name);
         let _ = render_metrics(&metrics, &metric_dir, guidance.name());
 
-        println!("{}", metrics.console_print());
+        println!(
+            "Scenario: {} | Guidance: {}\n{}\n",
+            scenario.name,
+            guidance.name().to_string().bright_cyan(),
+            metrics.console_print()
+        );
     });
 
     Ok(())

@@ -1,7 +1,7 @@
 use crate::simulation::SimulationMetrics;
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
-use std::fs::{self, File};
+use std::fs::{self};
 use std::io::Write;
 use std::path::Path;
 
@@ -15,8 +15,6 @@ pub struct SimulationMetadata {
     pub timesteps: usize,
 }
 
-//TODO: I DONT KNOW WHAT THE HELL IS HAPPENING, AND WHAT TO DO 😑 😑
-
 impl SimulationMetrics {
     /// Export run summary data to JSON file (appends to array)
     #[allow(unused)]
@@ -27,11 +25,6 @@ impl SimulationMetrics {
         path_to_file: &str,
     ) -> Result<()> {
         let path = Path::new(path_to_file);
-
-        // Create parent directory if needed
-        if let Some(parent) = path.parent() {
-            fs::create_dir_all(parent)?;
-        }
 
         // Build metadata
         let metadata = SimulationMetadata {
@@ -59,9 +52,9 @@ impl SimulationMetrics {
         summaries.push(metadata);
 
         // Write JSON array
+        let mut file = fs::OpenOptions::new().write(true).append(true).open(path)?;
         let json = serde_json::to_string_pretty(&summaries)?;
-        let mut file = File::create(path)?;
-        file.write_all(json.as_bytes())?;
+        writeln!(file, "{}", json)?;
 
         Ok(())
     }
@@ -73,30 +66,26 @@ impl SimulationMetrics {
         guidance_name: &str,
         path_to_file: &str,
     ) -> Result<()> {
-        let path = Path::new(path_to_file);
+        let mut writer = csv::WriterBuilder::new()
+            .has_headers(false) // Disable headers since they should be initialized before parallel execution
+            .from_writer(
+                fs::OpenOptions::new()
+                    .write(true)
+                    .append(true)
+                    .create(true)
+                    .open(path_to_file)?,
+            );
 
-        // Create parent directory if needed
-        if let Some(parent) = path.parent() {
-            fs::create_dir_all(parent)?;
-        }
-
-        // Append data (header should be initialized before parallel execution)
-        let mut file = fs::OpenOptions::new()
-            .create(true)
-            .append(true)
-            .open(path)?;
-
-        writeln!(
-            file,
-            "{},{},{:.2},{:.2},{},{}",
+        writer.write_record(&[
             scenario_name,
             guidance_name,
-            self.time_history.last().unwrap_or(&0.0),
-            self.miss_distance,
-            if self.hit { 1 } else { 0 },
-            self.time_history.len(),
-        )?;
+            &format!("{:.2}", self.time_history.last().unwrap_or(&0.0)),
+            &format!("{:.2}", self.miss_distance),
+            &format!("{}", if self.hit { 1 } else { 0 }),
+            &format!("{}", self.time_history.len()),
+        ])?;
 
+        writer.flush()?;
         Ok(())
     }
 }
