@@ -1,13 +1,18 @@
 use anyhow::Result;
 use missile_sim::prelude::*;
 use rayon::prelude::*;
-use std::fs::File;
-use std::io::Write;
+use std::path::PathBuf;
 use std::sync::Mutex;
 use std::sync::atomic::{AtomicUsize, Ordering};
 
 fn main() -> Result<()> {
     println!("\nGenerating data...\n");
+
+    // Random data generator, auto creates data directory and summary file
+    let path = PathBuf::from("data");
+    let random_data_generator = RandomData::init(100, &path); //TODO: This should auto creates summary file, so parallel writing wont corrupt it
+    let summary_csv = path.join("summary.csv");
+    let summary_json = path.join("summary.json");
 
     // Define guidance laws to test
     let guidance_laws: Vec<GuidanceLawType> = vec![
@@ -17,23 +22,11 @@ fn main() -> Result<()> {
     ];
 
     // Load scenarios
-    let scenarios = load_random_scenario(500);
+    let scenarios = random_data_generator.load_random_scenario();
     let total_run = scenarios.len() * guidance_laws.len();
 
     // Progress counter
     let completed = AtomicUsize::new(0);
-
-    // Output paths
-    let summary_file = "data/summary.csv";
-
-    // Initialize summary file with header
-    std::fs::create_dir_all("data")?;
-    let mut file = File::create(summary_file)?;
-    writeln!(
-        file,
-        "scenario,guidance_law,duration,miss_distance,hit,timesteps"
-    )?;
-    drop(file);
 
     // Mutex for synchronized file writes
     let file_mutex = Mutex::new(());
@@ -48,21 +41,26 @@ fn main() -> Result<()> {
             // Export data
             let guidance_name = guidance.name();
 
-            // if let Err(e) = metrics.export_csv(&scenario.name, guidance_name, "data/csv") {
-            //     eprintln!("✗ CSV export failed: {}", e);
-            // }
-
-            /*if let Err(e) =
-                metrics.export_json(&scenario.name, guidance_name, "data/json", scenario.dt)
-            {
-                eprintln!("✗ Metadata export failed: {}", e);
-            }*/
-
             // Synchronized write to summary file
+
             {
                 let _lock = file_mutex.lock().unwrap();
-                if let Err(e) = metrics.export_summary(&scenario.name, guidance_name, summary_file)
-                {
+                if let Err(e) = metrics.export_summary_json(
+                    &scenario.name,
+                    guidance_name,
+                    summary_json.to_str().unwrap(),
+                ) {
+                    eprintln!("✗ Summary export failed: {}", e);
+                }
+            }
+
+            {
+                let _lock = file_mutex.lock().unwrap();
+                if let Err(e) = metrics.export_summary_csv(
+                    &scenario.name,
+                    guidance_name,
+                    summary_csv.to_str().unwrap(),
+                ) {
                     eprintln!("✗ Summary export failed: {}", e);
                 }
             }

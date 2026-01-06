@@ -6,18 +6,47 @@ use nalgebra::Vector3;
 use rand::prelude::StdRng;
 use rand::{Rng, SeedableRng};
 use std::f64::consts::TAU;
+use std::io::Write;
+use std::path::PathBuf;
 
-pub fn load_random_scenario(count: u64) -> Vec<Scenario> {
-    let mut scenarios = Vec::new();
+pub struct RandomData {
+    pub run_count: u64,
+    pub output_dir: PathBuf,
+}
 
-    for seed in 0..count {
-        scenarios.push(
-            generate_random_scenario(seed)
-                .unwrap_or_else(|e| panic!("Failed to generate scenario {}: {}", seed, e)),
-        );
+impl RandomData {
+    pub fn init(run_count: u64, output_dir: &PathBuf) -> Self {
+        // Create output directory if it doesn't exist
+        std::fs::create_dir_all(output_dir).unwrap();
+
+        // Create Summary CSV file with header
+        let summary_path = output_dir.join("summary.csv");
+        let mut file = std::fs::File::create(&summary_path).unwrap();
+        writeln!(
+            file,
+            "scenario,guidance_law,duration,miss_distance,hit,timesteps"
+        )
+        .unwrap();
+        drop(file);
+
+        Self {
+            run_count,
+            output_dir: output_dir.clone(),
+        }
     }
 
-    scenarios
+    pub fn load_random_scenario(&self) -> Vec<Scenario> {
+        let mut scenarios = Vec::new();
+
+        for seed in 0..self.run_count {
+            scenarios.push(
+                generate_random_scenario(seed)
+                    .unwrap_or_else(|e| panic!("Failed to generate scenario {}: {}", seed, e)),
+            );
+        }
+
+        scenarios
+    }
 }
 
 fn generate_random_scenario(seed: u64) -> Result<Scenario> {

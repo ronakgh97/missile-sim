@@ -13,8 +13,8 @@ pub mod prelude {
         AugmentedProportionalNavigation, DeviatedPursuit, GuidanceLawType, LeadPursuit,
         PureProportionalNavigation, PurePursuit, TrueProportionalNavigation,
     };
+    pub use crate::scenarios::RandomData;
     pub use crate::scenarios::load_preset_scenarios;
-    pub use crate::scenarios::load_random_scenario;
     pub use crate::simulation::{Scenario, ScenarioBuilder, SimulationEngine, SimulationMetrics};
     pub use crate::visual::{render_metrics, render_trajectory_3d};
 }
