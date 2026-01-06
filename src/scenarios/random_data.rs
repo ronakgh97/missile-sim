@@ -7,10 +7,10 @@ use rand::prelude::StdRng;
 use rand::{Rng, SeedableRng};
 use std::f64::consts::TAU;
 
-pub fn load_train_data() -> Vec<Scenario> {
+pub fn load_random_scenario(count: u64) -> Vec<Scenario> {
     let mut scenarios = Vec::new();
 
-    for seed in 0..100 {
+    for seed in 0..count {
         scenarios.push(
             generate_random_scenario(seed)
                 .unwrap_or_else(|e| panic!("Failed to generate scenario {}: {}", seed, e)),
@@ -66,7 +66,7 @@ fn generate_random_scenario(seed: u64) -> Result<Scenario> {
     let max_accel = rng.random_range(1000.0..3000.0);
     let nav_const = rng.random_range(3.0..7.0);
 
-    ScenarioBuilder::new(&format!("train_{}", seed))
+    ScenarioBuilder::new(&format!("random_{}", seed))
         .missile_config(MissileConfig {
             position: m_pos,
             velocity: m_vel,

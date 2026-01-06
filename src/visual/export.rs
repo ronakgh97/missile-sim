@@ -120,6 +120,7 @@ impl SimulationMetrics {
         Ok(filename)
     }
 
+    #[allow(unused)] // Who the hell uses JSEN these days...
     /// Export metadata JSON using SimulationDataPoint
     pub fn export_json(
         &self,
@@ -176,17 +177,12 @@ impl SimulationMetrics {
             fs::create_dir_all(parent)?;
         }
 
-        // Create header if file doesn't exist
-        if !path.exists() {
-            let mut file = File::create(path)?;
-            writeln!(
-                file,
-                "scenario,guidance_law,duration,miss_distance,hit,timesteps"
-            )?;
-        }
+        // Append data (header should be initialized before parallel execution)
+        let mut file = fs::OpenOptions::new()
+            .create(true)
+            .append(true)
+            .open(path)?;
 
-        // Append data
-        let mut file = fs::OpenOptions::new().append(true).open(path)?;
         writeln!(
             file,
             "{},{},{:.2},{:.2},{},{}",
