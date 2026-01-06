@@ -17,7 +17,7 @@ fn test_simulation_engine_hit() {
     });
 
     let mut engine = SimulationEngine::new(missile, target, 0.01, 20.0, 1.0);
-    let guidance = PureProportionalNavigation;
+    let guidance = GuidanceLawType::PPN;
     let metrics = engine.run(&guidance);
 
     assert!(metrics.hit);

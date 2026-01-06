@@ -1,3 +1,4 @@
+use colored::Colorize;
 use nalgebra::Vector3;
 
 pub struct SimulationMetrics {
@@ -93,9 +94,13 @@ impl SimulationMetrics {
     pub fn console_print(&self) -> String {
         format!(
             "Travel Duration: {:.2} | Miss Distance: {:.2} | Hit: {}",
-            self.time_history.last().unwrap_or(&0.0),
-            self.miss_distance,
-            if self.hit { "1" } else { "0" },
+            self.time_history.last().unwrap_or(&0.0).to_string().cyan(),
+            self.miss_distance.to_string().yellow(),
+            if self.hit {
+                "1".to_string().green()
+            } else {
+                "0".to_string().red()
+            },
         )
     }
 }

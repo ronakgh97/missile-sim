@@ -2,9 +2,7 @@ use anyhow::Result;
 use clap::Parser;
 use missile_sim::args::{Args, Commands, MissileArgs, TargetArgs};
 use missile_sim::prelude::{
-    AugmentedProportionalNavigation, GuidanceLaw, MissileConfig,
-    PureProportionalNavigation, ScenarioBuilder, TargetConfig,
-    TrueProportionalNavigation, render_trajectory_3d,
+    GuidanceLawType, MissileConfig, ScenarioBuilder, TargetConfig, render_trajectory_3d,
 };
 use nalgebra::Vector3;
 
@@ -64,10 +62,10 @@ async fn run_sim(
         .build()?;
 
     // TODO: Maybe set args to which guidance laws to run?, for now, lets run the base three
-    let guidance_laws: Vec<Box<dyn GuidanceLaw>> = vec![
-        Box::new(PureProportionalNavigation),
-        Box::new(TrueProportionalNavigation),
-        Box::new(AugmentedProportionalNavigation::new(1.25)),
+    let guidance_laws: Vec<GuidanceLawType> = vec![
+        GuidanceLawType::PPN,
+        GuidanceLawType::TPN,
+        GuidanceLawType::APN(1.25),
     ];
 
     // Output directory
@@ -80,7 +78,7 @@ async fn run_sim(
 
         // Create engine and run simulation
         let mut engine = scenario.to_engine();
-        let metrics = engine.run(guidance.as_ref());
+        let metrics = engine.run(guidance);
 
         // Render trajectory plot
         let _ = render_trajectory_3d(&metrics, output_dir, &scenario.name, guidance.name());

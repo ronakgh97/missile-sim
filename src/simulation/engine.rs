@@ -1,6 +1,6 @@
 use crate::core::{calculate_closing_speed_simd, calculate_los_rate_simd, norm_simd};
 use crate::entity::{Missile, Target};
-use crate::guidance::GuidanceLaw;
+use crate::guidance::GuidanceLawType;
 use crate::simulation::metrics::SimulationMetrics;
 
 /// Simulation engine that runs the missile-target engagement
@@ -32,7 +32,7 @@ impl SimulationEngine {
     }
 
     /// Run the simulation with the specified guidance law
-    pub fn run(&mut self, guidance: &dyn GuidanceLaw) -> SimulationMetrics {
+    pub fn run(&mut self, guidance: &GuidanceLawType) -> SimulationMetrics {
         let mut metrics = SimulationMetrics::new();
 
         // Estimate number of steps for pre-allocation
@@ -53,7 +53,7 @@ impl SimulationEngine {
 
     /// Perform a single simulation step
     #[inline]
-    pub fn step(&mut self, guidance: &dyn GuidanceLaw, metrics: &mut SimulationMetrics) {
+    pub fn step(&mut self, guidance: &GuidanceLawType, metrics: &mut SimulationMetrics) {
         // Calculate guidance command
         let acceleration = guidance.calculate_acceleration(&self.missile, &self.target);
 

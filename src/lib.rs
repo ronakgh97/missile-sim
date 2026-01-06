@@ -10,7 +10,7 @@ pub mod prelude {
     pub use crate::core::{State3D, calculate_closing_speed, calculate_los_rate};
     pub use crate::entity::{Missile, MissileConfig, Target, TargetConfig};
     pub use crate::guidance::{
-        AugmentedProportionalNavigation, DeviatedPursuit, GuidanceLaw, LeadPursuit,
+        AugmentedProportionalNavigation, DeviatedPursuit, GuidanceLawType, LeadPursuit,
         PureProportionalNavigation, PurePursuit, TrueProportionalNavigation,
     };
     pub use crate::scenarios::load_preset_scenarios;

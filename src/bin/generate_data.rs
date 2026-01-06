@@ -13,10 +13,7 @@ fn main() -> Result<()> {
     // Progress counter
     let completed = AtomicUsize::new(0);
 
-    let guidance_laws: Vec<Box<dyn GuidanceLaw>> = vec![
-        Box::new(PureProportionalNavigation),
-        Box::new(TrueProportionalNavigation),
-    ];
+    let guidance_laws: Vec<GuidanceLawType> = vec![GuidanceLawType::PPN, GuidanceLawType::TPN];
 
     // Output paths
     let summary_file = "data/summary.csv";
@@ -24,10 +21,9 @@ fn main() -> Result<()> {
     // PARALLEL
     scenarios.par_iter().for_each(|scenario| {
         for guidance in &guidance_laws {
-
             // Run simulation
             let mut engine = scenario.to_engine();
-            let metrics = engine.run(guidance.as_ref());
+            let metrics = engine.run(guidance);
 
             // Export data
             let guidance_name = guidance.name();

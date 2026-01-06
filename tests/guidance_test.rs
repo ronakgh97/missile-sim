@@ -16,8 +16,8 @@ fn test_ppn_guidance() {
         velocity: Vector3::new(0.0, 0.0, 0.0),
     });
 
-    let ppn = PureProportionalNavigation;
-    let acceleration = ppn.calculate_acceleration(&missile, &target);
+    let guidance = GuidanceLawType::PPN;
+    let acceleration = guidance.calculate_acceleration(&missile, &target);
 
     // Direction
     assert!(acceleration.x.abs() < 1e-6);
@@ -52,8 +52,8 @@ fn test_tpn_guidance() {
         velocity: Vector3::new(0.0, 0.0, 0.0),
     });
 
-    let tpn = TrueProportionalNavigation;
-    let acceleration = tpn.calculate_acceleration(&missile, &target);
+    let guidance = GuidanceLawType::TPN;
+    let acceleration = guidance.calculate_acceleration(&missile, &target);
 
     // Direction should be the same as PPN
     assert!(acceleration.x.abs() < 1e-6);

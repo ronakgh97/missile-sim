@@ -5,7 +5,7 @@ use plotters::prelude::*;
 use std::fs;
 
 /// Default plot dimensions for metric charts
-pub const DEFAULT_METRIC_WIDTH: u32 = 682;  // 1024 * 2/3
+pub const DEFAULT_METRIC_WIDTH: u32 = 682; // 1024 * 2/3
 pub const DEFAULT_METRIC_HEIGHT: u32 = 512; // 768 * 2/3
 
 /// Render all metric plots for a simulation run
@@ -17,7 +17,12 @@ pub fn render_metrics(
 ) -> Result<Vec<String>> {
     fs::create_dir_all(output_dir)?;
     let base_name = format!("{output_dir}/{guidance_name}");
-    plot_all_metrics(metrics, &base_name, DEFAULT_METRIC_WIDTH, DEFAULT_METRIC_HEIGHT)
+    plot_all_metrics(
+        metrics,
+        &base_name,
+        DEFAULT_METRIC_WIDTH,
+        DEFAULT_METRIC_HEIGHT,
+    )
 }
 
 pub fn plot_metric_chart(

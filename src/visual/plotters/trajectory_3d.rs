@@ -19,12 +19,12 @@ pub fn render_trajectory_3d(
     guidance_name: &str,
 ) -> Result<String> {
     fs::create_dir_all(output_dir)?;
-    
+
     let filename = format!("{output_dir}/{guidance_name}_trajectory.png");
     let title = format!("{scenario_name} - {guidance_name}");
-    
+
     plot_3d_trajectory(metrics, &filename, &title, DEFAULT_WIDTH, DEFAULT_HEIGHT)?;
-    
+
     Ok(filename)
 }
 

@@ -3,18 +3,19 @@ use missile_sim::prelude::*;
 use rayon::iter::IntoParallelRefIterator;
 use rayon::iter::ParallelIterator;
 
-fn main() -> Result<()> {
+#[tokio::main]
+async fn main() -> Result<()> {
     // Load preset scenarios
-    let scenarios = load_preset_scenarios();
+    let scenarios = load_preset_scenarios().await;
 
-    // Define guidance laws to plots
-    let guidance_laws: Vec<Box<dyn GuidanceLaw>> = vec![
-        Box::new(PureProportionalNavigation),
-        Box::new(TrueProportionalNavigation),
-        Box::new(AugmentedProportionalNavigation::new(2.25)),
-        Box::new(PurePursuit),
-        Box::new(DeviatedPursuit),
-        Box::new(LeadPursuit::new(1.75)),
+    // Define guidance laws to plot
+    let guidance_laws: Vec<GuidanceLawType> = vec![
+        GuidanceLawType::PPN,
+        GuidanceLawType::TPN,
+        GuidanceLawType::APN(2.25),
+        GuidanceLawType::PP,
+        GuidanceLawType::DP,
+        GuidanceLawType::LP(1.75),
     ];
 
     // Output directories
@@ -22,7 +23,7 @@ fn main() -> Result<()> {
     let metrics_dir = "plots/metrics";
 
     // Run simulations
-    let combinations: Vec<(&Scenario, &Box<dyn GuidanceLaw>)> = scenarios
+    let combinations: Vec<(&Scenario, &GuidanceLawType)> = scenarios
         .iter()
         .flat_map(|scenario| {
             guidance_laws
@@ -34,7 +35,7 @@ fn main() -> Result<()> {
     combinations.par_iter().for_each(|(scenario, guidance)| {
         // Create engine and run simulation
         let mut engine = scenario.to_engine();
-        let metrics = engine.run(guidance.as_ref());
+        let metrics = engine.run(guidance);
 
         // Render trajectory plot
         let trajectory_dir = format!("{}/{}", trajectories_dir, scenario.name);
