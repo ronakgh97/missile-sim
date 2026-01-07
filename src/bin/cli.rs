@@ -76,7 +76,7 @@ async fn run_sim(
     tokio::time::sleep(Duration::from_secs(1)).await;
 
     for result in results.await?? {
-        print!("{}", result);
+        print!("{}", result.to_string().bright_white());
     }
 
     println!();
@@ -87,7 +87,7 @@ async fn run_sim(
 async fn prompt_inputs() -> Result<()> {
     intro("Setup Scenario".to_string().cyan())?;
 
-    let scenario_name: String = input("Enter scenario name:")
+    let scenario_name: String = input("Enter scenario name:".yellow())
         .placeholder("Fast Perpendicular Intercept")
         .validate_on_enter(|input: &String| {
             if input.is_empty() {
@@ -98,50 +98,50 @@ async fn prompt_inputs() -> Result<()> {
         })
         .interact()?;
 
-    let missile_position: String = input("Enter missile position (x,y,z):")
+    let missile_position: String = input("Enter missile position (x,y,z):".yellow())
         .placeholder("0.0, 0.0, 0.0")
         .validate_on_enter(|input: &String| validate_inputs(input))
         .interact()?;
 
-    let missile_velocity: String = input("Enter missile velocity (vx,vy,vz):")
+    let missile_velocity: String = input("Enter missile velocity (vx,vy,vz):".yellow())
         .placeholder("0.0, 0.0, 0.0")
         .validate_on_enter(|input: &String| validate_inputs(input))
         .interact()?;
 
-    let missile_max_acceleration: f64 = input("Enter missile max acceleration (m/s²):")
+    let missile_max_acceleration: f64 = input("Enter missile max acceleration (m/s²):".yellow())
         .placeholder("50.0")
         .interact()?;
 
-    let navigation_constant: f64 = input("Enter missile navigation constant (N):")
+    let navigation_constant: f64 = input("Enter missile navigation constant (N):".yellow())
         .placeholder("5.0")
         .interact()?;
 
-    let closing_speed_limit: f64 = input("Enter missile max closing speed (m/s):")
+    let closing_speed_limit: f64 = input("Enter missile max closing speed (m/s):".yellow())
         .placeholder("3000.0")
         .interact()?;
 
-    let target_position: String = input("Enter target position (x,y,z):")
+    let target_position: String = input("Enter target position (x,y,z):".yellow())
         .placeholder("0.0, 0.0, 0.0")
         .validate_on_enter(|input: &String| validate_inputs(input))
         .interact()?;
 
-    let target_velocity: String = input("Enter target velocity (vx,vy,vz):")
+    let target_velocity: String = input("Enter target velocity (vx,vy,vz):".yellow())
         .placeholder("0.0, 0.0, 0.0")
         .validate_on_enter(|input: &String| validate_inputs(input))
         .interact()?;
 
-    let dt: f64 = input("Enter simulation timestep (seconds):")
+    let dt: f64 = input("Enter simulation timestep (seconds):".yellow())
         .placeholder("0.0001")
         .interact()?;
 
-    let total_time: f64 = input("Enter total simulation time (seconds):")
+    let total_time: f64 = input("Enter total simulation time (seconds):".yellow())
         .placeholder("60.0")
         .interact()?;
 
     let missile_pos_vec = parse_coordinates_from_string_inputs(&missile_position)?;
     let target_pos_vec = parse_coordinates_from_string_inputs(&target_position)?;
 
-    outro("Running sim...\n")?;
+    outro("Running sim...\n".to_string().cyan())?;
 
     let scenario = ScenarioBuilder::new(&scenario_name)
         .missile_config(MissileConfig {
@@ -172,7 +172,7 @@ async fn prompt_inputs() -> Result<()> {
     tokio::time::sleep(Duration::from_secs(1)).await;
 
     for result in results.await?? {
-        print!("{}", result);
+        print!("{}", result.to_string().bright_white());
     }
 
     Ok(())
