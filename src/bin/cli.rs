@@ -1,5 +1,6 @@
 use anyhow::Result;
 use clap::Parser;
+use cliclack::{input, intro, outro};
 use colored::Colorize;
 use missile_sim::args::{Args, Commands, MissileArgs, TargetArgs};
 use missile_sim::prelude::{
@@ -7,6 +8,7 @@ use missile_sim::prelude::{
 };
 use nalgebra::Vector3;
 use rayon::prelude::*;
+use std::time::Duration;
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -20,7 +22,9 @@ async fn main() -> Result<()> {
         }) => {
             run_sim(missile, target, dt, total_time).await?;
         }
-        Some(Commands::Prompt { .. }) => {}
+        Some(Commands::Prompt { .. }) => {
+            prompt_inputs().await?;
+        }
         None => {
             print_art().await;
         }
@@ -71,7 +75,159 @@ async fn run_sim(
     let output_dir = ".";
 
     // Run simulations in parallel using rayon
-    let results: Vec<_> = guidance_laws
+    let results: Vec<String> = guidance_laws
+        .par_iter()
+        .map(|guidance| {
+            let mut output = String::new();
+            output += &format!(" Result: {} ", guidance.name());
+            let mut engine = scenario.to_engine();
+            let metrics = engine.run(guidance);
+            let _ = render_trajectory_3d(&metrics, output_dir, &scenario.name, guidance.name());
+            output += &format!("{}\n", metrics.console_print());
+            output
+        })
+        .collect();
+
+    for result in results {
+        print!("{}", result);
+    }
+
+    println!();
+
+    Ok(())
+}
+
+async fn prompt_inputs() -> Result<()> {
+    intro("Setup Scenario".to_string().cyan())?;
+
+    let scenario_name: String = input("Enter scenario name:")
+        .placeholder("Fast Perpendicular Intercept")
+        .validate(|input: &String| {
+            if input.is_empty() {
+                Err("Value is required!")
+            } else {
+                Ok(())
+            }
+        })
+        .interact()?;
+
+    let missile_position: String = input("Enter missile position (x,y,z):")
+        .placeholder("0.0, 0.0, 0.0")
+        .validate(|input: &String| {
+            let parts: Vec<&str> = input.split(',').collect();
+            if parts.len() != 3 {
+                return Err("Please enter three comma-separated values.".to_string());
+            }
+            for part in parts {
+                if part.trim().parse::<f64>().is_err() {
+                    return Err(format!("'{}' is not a valid number.", part.trim()));
+                }
+            }
+            Ok(())
+        })
+        .interact()?;
+
+    let missile_velocity: String = input("Enter missile velocity (vx,vy,vz):")
+        .placeholder("0.0, 0.0, 0.0")
+        .validate(|input: &String| {
+            let parts: Vec<&str> = input.split(',').collect();
+            if parts.len() != 3 {
+                return Err("Please enter three comma-separated values.".to_string());
+            }
+            for part in parts {
+                if part.trim().parse::<f64>().is_err() {
+                    return Err(format!("'{}' is not a valid number.", part.trim()));
+                }
+            }
+            Ok(())
+        })
+        .interact()?;
+
+    let missile_max_acceleration: f64 = input("Enter missile max acceleration (m/s²):")
+        .placeholder("50.0")
+        .interact()?;
+
+    let navigation_constant: f64 = input("Enter missile navigation constant (N):")
+        .placeholder("5.0")
+        .interact()?;
+
+    let closing_speed_limit: f64 = input("Enter missile max closing speed (m/s):")
+        .placeholder("3000.0")
+        .interact()?;
+
+    let target_position: String = input("Enter target position (x,y,z):")
+        .placeholder("0.0, 0.0, 0.0")
+        .validate(|input: &String| {
+            let parts: Vec<&str> = input.split(',').collect();
+            if parts.len() != 3 {
+                return Err("Please enter three comma-separated values.".to_string());
+            }
+            for part in parts {
+                if part.trim().parse::<f64>().is_err() {
+                    return Err(format!("'{}' is not a valid number.", part.trim()));
+                }
+            }
+            Ok(())
+        })
+        .interact()?;
+
+    let target_velocity: String = input("Enter target velocity (vx,vy,vz):")
+        .placeholder("0.0, 0.0, 0.0")
+        .validate(|input: &String| {
+            let parts: Vec<&str> = input.split(',').collect();
+            if parts.len() != 3 {
+                return Err("Please enter three comma-separated values.".to_string());
+            }
+            for part in parts {
+                if part.trim().parse::<f64>().is_err() {
+                    return Err(format!("'{}' is not a valid number.", part.trim()));
+                }
+            }
+            Ok(())
+        })
+        .interact()?;
+
+    let dt: f64 = input("Enter simulation timestep (seconds):")
+        .placeholder("0.0001")
+        .interact()?;
+
+    let total_time: f64 = input("Enter total simulation time (seconds):")
+        .placeholder("60.0")
+        .interact()?;
+
+    let missile_pos_vec = parse_coordinates(&missile_position)?;
+    let target_pos_vec = parse_coordinates(&target_position)?;
+
+    outro("Running sim...\n")?;
+    tokio::time::sleep(Duration::from_secs(1)).await;
+
+    let scenario = ScenarioBuilder::new(&scenario_name)
+        .missile_config(MissileConfig {
+            position: missile_pos_vec,
+            velocity: parse_coordinates(&missile_velocity)?,
+            max_acceleration: missile_max_acceleration,
+            navigation_constant,
+            max_closing_speed: closing_speed_limit,
+        })
+        .target_config(TargetConfig {
+            position: target_pos_vec,
+            velocity: parse_coordinates(&target_velocity)?,
+        })
+        .dt(dt)
+        .total_time(total_time)
+        .hit_threshold(10.0)
+        .build()?;
+
+    let guidance_laws: Vec<GuidanceLawType> = vec![
+        GuidanceLawType::PP,
+        GuidanceLawType::PPN,
+        GuidanceLawType::TPN,
+        GuidanceLawType::APN(2.25),
+    ];
+
+    let output_dir = ".";
+
+    let results: Vec<String> = guidance_laws
         .par_iter()
         .map(|guidance| {
             let mut output = String::new();
@@ -88,9 +244,20 @@ async fn run_sim(
         print!("{}", result);
     }
 
-    println!();
-
     Ok(())
+}
+
+fn parse_coordinates(input: &str) -> Result<Vector3<f64>> {
+    let parts: Vec<&str> = input.split(',').collect();
+    if parts.len() != 3 {
+        return Err(anyhow::anyhow!(
+            "Please enter three comma-separated values."
+        ));
+    }
+    let x = parts[0].trim().parse::<f64>()?;
+    let y = parts[1].trim().parse::<f64>()?;
+    let z = parts[2].trim().parse::<f64>()?;
+    Ok(Vector3::new(x, y, z))
 }
 
 async fn print_art() {
