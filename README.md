@@ -251,6 +251,22 @@ async fn test_0() -> Result<Scenario> {
 ![Metrics_1](PPN_los_angular_rate.png)
 ![Metrics_2](TPN_closing_velocity.png)
 
+### Summary Metrics
+
+![Hit Statistics](Summary_1000.png)
+
+- Out of 1000 random scenarios each, PPN achieved 389 hits, TPN 310 hits, and APN 519 hits, PP achieved 738 hits, DP 670
+  hits, and LP 856 hits.
+- WHOA, What the heck 🫡, LP is the best one! Who would have thought!
+- TPN is doing worse than PPN, interesting, probably because of the large rate of change in closing velocity.
+
+![Hit_Statistics](Summary_5000.png)
+
+- Out of 5000 random scenarios each, PPN achieved 2000 hits, TPN 1606 hits, and APN 2648 hits, PP achieved 3741 hits,
+  DP 3411 hits, and LP 4279 hits.
+- Yep, LP still the best one by a good margin.
+- Looks like the Pursuit family does better in random scenarios.
+
 ## Data Export
 
 The simulator exports summary data in two formats for machine learning applications:
