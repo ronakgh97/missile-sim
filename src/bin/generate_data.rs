@@ -12,13 +12,16 @@ fn main() -> Result<()> {
     let path = PathBuf::from(".");
     let summary_csv = path.join("summary.csv");
     let summary_json = path.join("summary.json");
-    let random_data_generator = RandomData::init(100, &path, &summary_csv, &summary_json);
+    let random_data_generator = RandomData::init(5000, &path, &summary_csv, &summary_json);
 
     // Define guidance laws to test
     let guidance_laws: Vec<GuidanceLawType> = vec![
         GuidanceLawType::PPN,
         GuidanceLawType::TPN,
         GuidanceLawType::APN(2.75),
+        GuidanceLawType::PP,
+        GuidanceLawType::LP(2.75),
+        GuidanceLawType::DP,
     ];
 
     // Load scenarios
