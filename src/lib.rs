@@ -16,5 +16,5 @@ pub mod prelude {
     pub use crate::scenarios::RandomData;
     pub use crate::scenarios::load_preset_scenarios;
     pub use crate::simulation::{Scenario, ScenarioBuilder, SimulationEngine, SimulationMetrics};
-    pub use crate::visual::{render_metrics, render_trajectory_3d};
+    pub use crate::visual::{render_metrics, render_trajectory_3d, render_master};
 }

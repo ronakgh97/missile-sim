@@ -2,6 +2,7 @@
 name = "missile-sim"
 version = "0.1.0"
 edition = "2024"
+# autobins = false
 
 [lib]
 name = "missile_sim"
@@ -10,6 +11,10 @@ path = "src/lib.rs"
 [[bin]]
 name = "ms"
 path = "src/bin/cli.rs"
+
+[[bin]]
+name = "ms_gui"
+path = "src/bin/gui.rs"
 
 [profile.release]
 opt-level = 3
