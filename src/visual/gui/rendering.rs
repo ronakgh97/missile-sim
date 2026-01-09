@@ -14,9 +14,9 @@ use macroquad::prelude::*;
 /// - I hope your family crap is finally over
 
 pub async fn render_master() -> Result<()> {
-    render_grid(10).await?;
+    render_grid(5).await?;
     sections_lines().await?;
-
+    render_plane_label().await?;
     Ok(())
 }
 
@@ -58,9 +58,59 @@ pub async fn sections_lines() -> Result<()> {
     Ok(())
 }
 
+async fn render_plane_label() -> Result<()> {
+    // Missile Labels
+
+    // X-Y Plane
+    draw_text("X-Y Plane", 10.0, 20.0, 20.0, WHITE);
+
+    // X-Z Plane
+    draw_text(
+        "X-Z Plane",
+        screen_width() * 0.334 + 10.0,
+        20.0,
+        20.0,
+        WHITE,
+    );
+
+    // Z-Y Plane
+    draw_text(
+        "Z-Y Plane",
+        screen_width() * 0.334 * 2.0 + 10.0,
+        20.0,
+        20.0,
+        WHITE,
+    );
+
+    // Target Labels
+
+    // X-Y Plane
+    draw_text("X-Y Plane", 10.0, screen_height() / 2.0 + 20.0, 20.0, WHITE);
+
+    // X-Z Plane
+    draw_text(
+        "X-Z Plane",
+        screen_width() * 0.334 + 10.0,
+        screen_height() / 2.0 + 20.0,
+        20.0,
+        WHITE,
+    );
+
+    // Z-Y Plane
+    draw_text(
+        "Z-Y Plane",
+        screen_width() * 0.334 * 2.0 + 10.0,
+        screen_height() / 2.0 + 20.0,
+        20.0,
+        WHITE,
+    );
+
+    Ok(())
+}
+
 /// Render a global grid aligned across all 6 sections
-/// Missile: Top-left, Top-between, Top-right (x, y, z) top-down
-/// Target: Bottom-left, Bottom-between, Bottom-right (x, y, z) top-down
+/// Missile: Top-left (XY Plane), Top-between (XZ Plane), Top-right (ZY Plane)
+/// Target: Bottom-left, Bottom-between, Bottom-right (same planes as above)
 pub async fn render_grid(line_count: usize) -> Result<()> {
     let screen_width = screen_width();
     let screen_height = screen_height();
