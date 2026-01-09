@@ -8,32 +8,44 @@ use macroquad::prelude::*;
 ///
 /// I dont know how to celebrate birthdays anymore, SO I JUST GONNA CODE, LISTEN TO SOME JAZZ.
 ///
-/// From 'N' year from now:
+/// 'N' year from now:
 /// - I hope you're still coding while you can...maybe
 /// - I hope you're kinder to yourself
 /// - I hope your family crap is finally over
 
 pub async fn render_master() -> Result<()> {
+    render_grid(10).await?;
     sections_lines().await?;
-
-    render_grid(15).await?;
 
     Ok(())
 }
 
-/// Split the screen into 4 sections with 2 lines
+/// Split the screen into 6 sections with 3 lines
 pub async fn sections_lines() -> Result<()> {
     let screen_width = screen_width();
     let screen_height = screen_height();
 
+    // Vertical line
     draw_line(
-        screen_width / 2.0,
+        screen_width * 0.334,
         0.0,
-        screen_width / 2.0,
+        screen_width * 0.334,
         screen_height,
         5.0,
         BLUE,
     );
+
+    // Vertical line
+    draw_line(
+        screen_width * 0.334 * 2.0,
+        0.0,
+        screen_width * 0.334 * 2.0,
+        screen_height,
+        5.0,
+        BLUE,
+    );
+
+    // Horizontal line
     draw_line(
         0.0,
         screen_height / 2.0,
@@ -46,40 +58,90 @@ pub async fn sections_lines() -> Result<()> {
     Ok(())
 }
 
-/// Render a grid in each section (top-left, top-right, bottom-left) (x,y,z)
+/// Render a global grid aligned across all 6 sections
+/// Missile: Top-left, Top-between, Top-right (x, y, z) top-down
+/// Target: Bottom-left, Bottom-between, Bottom-right (x, y, z) top-down
 pub async fn render_grid(line_count: usize) -> Result<()> {
     let screen_width = screen_width();
     let screen_height = screen_height();
 
-    // Draw for first section (top-left)
-    for i in 1..line_count {
-        let x = (screen_width / 2.0) / (line_count as f32) * (i as f32);
-        let y = (screen_height / 2.0) / (line_count as f32) * (i as f32);
+    // Render grid for top left section (missile x-top)
+    for i in 0..=line_count {
+        let x = i as f32 * (screen_width * 0.334) / line_count as f32;
+        let y = i as f32 * (screen_height / 2.0) / line_count as f32;
+
+        // Vertical lines
+        draw_line(x, 0.0, x, screen_height / 2.0, 1.0, RED);
+
+        // Horizontal lines
+        draw_line(0.0, y, screen_width * 0.334, y, 1.0, RED);
+    }
+
+    // Render grid for top middle section (missile y-top)
+    for i in 0..=line_count {
+        let x = i as f32 * (screen_width * 0.334) / line_count as f32 + screen_width * 0.334;
+        let y = i as f32 * (screen_height / 2.0) / line_count as f32;
+
+        // Vertical lines
+        draw_line(x, 0.0, x, screen_height / 2.0, 1.0, RED);
+
+        // Horizontal lines
+        draw_line(
+            screen_width * 0.334,
+            y,
+            screen_width * 0.334 * 2.0,
+            y,
+            1.0,
+            RED,
+        );
+    }
+
+    // Render grid for top right section (missile z-top)
+    for i in 0..=line_count {
+        let x = i as f32 * (screen_width * 0.334) / line_count as f32 + screen_width * 0.334 * 2.0;
+        let y = i as f32 * (screen_height / 2.0) / line_count as f32;
 
         // Vertical lines
         draw_line(x, 0.0, x, screen_height / 2.0, 1.0, RED);
         // Horizontal lines
-        draw_line(0.0, y, screen_width / 2.0, y, 1.0, RED);
+        draw_line(screen_width * 0.334 * 2.0, y, screen_width, y, 1.0, RED);
     }
 
-    // Draw for second section (top-right)
-    for i in 1..line_count {
-        let x = (screen_width / 2.0) + (screen_width / 2.0) / (line_count as f32) * (i as f32);
-        let y = (screen_height / 2.0) / (line_count as f32) * (i as f32);
-        // Vertical lines
-        draw_line(x, 0.0, x, screen_height / 2.0, 1.0, RED);
-        // Horizontal lines
-        draw_line(screen_width / 2.0, y, screen_width, y, 1.0, RED);
-    }
-
-    // Draw for third section (bottom-left)
-    for i in 1..line_count {
-        let x = (screen_width / 2.0) / (line_count as f32) * (i as f32);
-        let y = (screen_height / 2.0) + (screen_height / 2.0) / (line_count as f32) * (i as f32);
+    // Render grid for bottom left section (target x-top)
+    for i in 0..=line_count {
+        let x = i as f32 * (screen_width * 0.334) / line_count as f32;
+        let y = i as f32 * (screen_height / 2.0) / line_count as f32 + screen_height / 2.0;
         // Vertical lines
         draw_line(x, screen_height / 2.0, x, screen_height, 1.0, RED);
         // Horizontal lines
-        draw_line(0.0, y, screen_width / 2.0, y, 1.0, RED);
+        draw_line(0.0, y, screen_width * 0.334, y, 1.0, RED);
+    }
+
+    // Render grid for bottom middle section (target y-top)
+    for i in 0..=line_count {
+        let x = i as f32 * (screen_width * 0.334) / line_count as f32 + screen_width * 0.334;
+        let y = i as f32 * (screen_height / 2.0) / line_count as f32 + screen_height / 2.0;
+        // Vertical lines
+        draw_line(x, screen_height / 2.0, x, screen_height, 1.0, RED);
+        // Horizontal lines
+        draw_line(
+            screen_width * 0.334,
+            y,
+            screen_width * 0.334 * 2.0,
+            y,
+            1.0,
+            RED,
+        );
+    }
+
+    // Render grid for bottom right section (target z-top)
+    for i in 0..=line_count {
+        let x = i as f32 * (screen_width * 0.334) / line_count as f32 + screen_width * 0.334 * 2.0;
+        let y = i as f32 * (screen_height / 2.0) / line_count as f32 + screen_height / 2.0;
+        // Vertical lines
+        draw_line(x, screen_height / 2.0, x, screen_height, 1.0, RED);
+        // Horizontal lines
+        draw_line(screen_width * 0.334 * 2.0, y, screen_width, y, 1.0, RED);
     }
 
     Ok(())

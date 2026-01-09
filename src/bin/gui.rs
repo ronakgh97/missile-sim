@@ -6,10 +6,10 @@ use missile_sim::prelude::*;
 fn _window_conf() -> Conf {
     Conf {
         window_title: String::from("Guidance Simulator"),
-        window_width: 1200,
-        window_height: 800,
-        window_resizable: false,
-        sample_count: 1024,
+        window_width: 4 * 256,
+        window_height: 3 * 256,
+        window_resizable: true,
+        sample_count: 4096,
         ..Default::default()
     }
 }
