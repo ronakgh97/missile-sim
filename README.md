@@ -267,6 +267,13 @@ async fn test_0() -> Result<Scenario> {
 - Yep, LP still the best one by a good margin.
 - Looks like the Pursuit family does better in random scenarios.
 
+[!Hit_Statistics](Summary_10000.png)
+
+- Out of 10000 random scenarios each, PPN achieved 4031 hits, TPN 3217 hits, and APN 5412 hits, PP achieved 7473 hits,
+  DP 6835 hits, and LP 8552 hits.
+- The trend continues, LP is the best guidance law in these random scenarios.
+- Maybe because it leads the target, so it can handle maneuvers better?
+
 ## Data Export
 
 The simulator exports summary data in two formats for machine learning applications:

@@ -21,6 +21,8 @@ pub async fn render_master() -> Result<()> {
 }
 
 /// Split the screen into 6 sections with 3 lines
+/// Each section represents a 2D plane view (X-Y, X-Z, Z-Y)
+/// Coordinates normalized to screen dimensions
 pub async fn sections_lines() -> Result<()> {
     let screen_width = screen_width();
     let screen_height = screen_height();
@@ -58,6 +60,7 @@ pub async fn sections_lines() -> Result<()> {
     Ok(())
 }
 
+/// Render labels for each plane in each section
 async fn render_plane_label() -> Result<()> {
     // Missile Labels
 
