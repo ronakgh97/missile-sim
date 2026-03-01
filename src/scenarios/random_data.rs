@@ -4,7 +4,7 @@ use crate::simulation::ScenarioBuilder;
 use anyhow::Result;
 use nalgebra::Vector3;
 use rand::prelude::StdRng;
-use rand::{Rng, SeedableRng};
+use rand::{RngExt, SeedableRng};
 use std::f64::consts::TAU;
 use std::io::Write;
 use std::path::PathBuf;
@@ -45,7 +45,8 @@ impl RandomData {
             output_dir: output_dir.clone(),
         }
     }
-
+    
+    #[inline]
     pub fn load_random_scenario(&self) -> Vec<Scenario> {
         let mut scenarios = Vec::new();
 
@@ -60,6 +61,7 @@ impl RandomData {
     }
 }
 
+#[inline]
 fn generate_random_scenario(seed: u64) -> Result<Scenario> {
     let mut rng = StdRng::seed_from_u64(seed);
 

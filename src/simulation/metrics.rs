@@ -84,12 +84,14 @@ impl SimulationMetrics {
             self.miss_distance = distance;
         }
     }
-
+    
+    #[inline]
     /// Finalize metrics after simulation ends
     pub fn finalize(&mut self, hit_threshold: f64) {
         self.hit = self.miss_distance < hit_threshold;
     }
-
+    
+    #[inline]
     /// Generate a console-friendly summary of key metrics
     pub fn console_print(&self) -> String {
         format!(

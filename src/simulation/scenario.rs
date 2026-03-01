@@ -13,6 +13,8 @@ pub struct Scenario {
 }
 
 impl Scenario {
+    
+    #[inline]
     pub fn to_engine(&self) -> SimulationEngine {
         let missile = Missile::new(self.missile_config.clone());
         let target = Target::new(self.target_config.clone());
@@ -48,32 +50,38 @@ impl ScenarioBuilder {
             hit_threshold: 5.0,
         }
     }
-
+    
+    #[inline]
     pub fn missile_config(mut self, config: MissileConfig) -> Self {
         self.missile_config = Some(config);
         self
     }
 
+    #[inline]
     pub fn target_config(mut self, config: TargetConfig) -> Self {
         self.target_config = Some(config);
         self
     }
 
+    #[inline]
     pub fn dt(mut self, dt: f64) -> Self {
         self.dt = dt;
         self
     }
 
+    #[inline]
     pub fn total_time(mut self, total_time: f64) -> Self {
         self.total_time = total_time;
         self
     }
 
+    #[inline]
     pub fn hit_threshold(mut self, threshold: f64) -> Self {
         self.hit_threshold = threshold;
         self
     }
 
+    #[inline]
     pub fn build(self) -> Result<Scenario> {
         Ok(Scenario {
             name: self.name,

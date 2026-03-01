@@ -8,6 +8,8 @@ use nalgebra::Vector3;
 pub struct TrueProportionalNavigation;
 
 impl GuidanceLaw for TrueProportionalNavigation {
+
+    #[inline]
     fn calculate_acceleration(&self, missile: &Missile, target: &Target) -> Vector3<f64> {
         let los_rate_vector = calculate_los_rate_simd(
             &missile.state.position,

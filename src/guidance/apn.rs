@@ -32,6 +32,8 @@ impl AugmentedProportionalNavigation {
 }
 
 impl GuidanceLaw for AugmentedProportionalNavigation {
+
+    #[inline]
     fn calculate_acceleration(&self, missile: &Missile, target: &Target) -> Vector3<f64> {
         let missile_speed = missile.state.speed();
 

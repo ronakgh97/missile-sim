@@ -30,7 +30,8 @@ impl SimulationEngine {
             hit_threshold,
         }
     }
-
+    
+    #[inline]
     /// Run the simulation with the specified guidance law
     pub fn run(&mut self, guidance: &GuidanceLawType) -> SimulationMetrics {
         let mut metrics = SimulationMetrics::new();
