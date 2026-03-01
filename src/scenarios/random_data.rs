@@ -45,7 +45,7 @@ impl RandomData {
             output_dir: output_dir.clone(),
         }
     }
-    
+
     #[inline]
     pub fn load_random_scenario(&self) -> Vec<Scenario> {
         let mut scenarios = Vec::new();

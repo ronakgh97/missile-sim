@@ -52,7 +52,7 @@ impl SimulationMetrics {
         summaries.push(metadata);
 
         // Write JSON array
-        let mut file = fs::OpenOptions::new().write(true).append(true).open(path)?;
+        let mut file = fs::OpenOptions::new().append(true).open(path)?;
         let json = serde_json::to_string_pretty(&summaries)?;
         writeln!(file, "{}", json)?;
 
@@ -70,13 +70,12 @@ impl SimulationMetrics {
             .has_headers(false) // Disable headers since they should be initialized before parallel execution
             .from_writer(
                 fs::OpenOptions::new()
-                    .write(true)
                     .append(true)
                     .create(true)
                     .open(path_to_file)?,
             );
 
-        writer.write_record(&[
+        writer.write_record([
             scenario_name,
             guidance_name,
             &format!("{:.2}", self.time_history.last().unwrap_or(&0.0)),

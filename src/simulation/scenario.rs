@@ -13,7 +13,6 @@ pub struct Scenario {
 }
 
 impl Scenario {
-    
     #[inline]
     pub fn to_engine(&self) -> SimulationEngine {
         let missile = Missile::new(self.missile_config.clone());
@@ -50,7 +49,7 @@ impl ScenarioBuilder {
             hit_threshold: 5.0,
         }
     }
-    
+
     #[inline]
     pub fn missile_config(mut self, config: MissileConfig) -> Self {
         self.missile_config = Some(config);

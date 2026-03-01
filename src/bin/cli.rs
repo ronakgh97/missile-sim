@@ -49,15 +49,15 @@ async fn run_sim(
     // Setup scenario from args
     let scenario = ScenarioBuilder::new("Scenario")
         .missile_config(MissileConfig {
-            position: missile_position.clone(),
-            velocity: missile_velocity.clone(),
+            position: missile_position,
+            velocity: missile_velocity,
             max_acceleration: missile_args.m_a_max,
             navigation_constant: missile_args.m_n.unwrap_or(5.0),
             max_closing_speed: missile_args.m_v_closing_max,
         })
         .target_config(TargetConfig {
-            position: target_position.clone(),
-            velocity: target_velocity.clone(),
+            position: target_position,
+            velocity: target_velocity,
         })
         .dt(dt)
         .total_time(total_time)
@@ -84,6 +84,7 @@ async fn run_sim(
     Ok(())
 }
 
+#[inline]
 async fn prompt_inputs() -> Result<()> {
     intro("Setup Scenario".to_string().cyan())?;
 
@@ -227,6 +228,7 @@ fn parse_coordinates_from_string_inputs(input: &str) -> Result<Vector3<f64>> {
     Ok(Vector3::new(x, y, z))
 }
 
+#[inline]
 async fn print_art() {
     let art = format!(
         r#"
@@ -249,5 +251,5 @@ async fn print_art() {
         "(x2, y2, z2)".to_string().bright_blue().bold()
     );
 
-    println!("{}\n", art.to_string());
+    println!("{}\n", art);
 }

@@ -12,7 +12,6 @@ pub const DEFAULT_HEIGHT: u32 = 768;
 
 /// Render a 3D trajectory plot and save to file
 /// Creates directory if needed
-
 #[inline]
 pub fn render_trajectory_3d(
     metrics: &SimulationMetrics,

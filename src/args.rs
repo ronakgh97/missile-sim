@@ -6,10 +6,9 @@ use clap::{Parser, Subcommand};
 #[command(
     name = "missile-sim",
     version = "1.0.0-beta",
-    about = "",
+    about = "Missile simulation and guidance law sandbox",
     long_about = ""
 )]
-
 pub struct Args {
     #[command(subcommand)]
     pub command: Option<Commands>,

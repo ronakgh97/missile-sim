@@ -4,15 +4,7 @@ use macroquad::prelude::*;
 ///
 /// Hey its my birthday today...
 ///
-/// I became 19 today, kiddo!!
-///
-/// I dont know how to celebrate birthdays anymore, SO I JUST GONNA CODE, LISTEN TO SOME JAZZ.
-///
-/// 'N' year from now:
-/// - I hope you're still coding while you can...maybe
-/// - I hope you're kinder to yourself
-/// - I hope your family crap is finally over
-
+/// I became 19 today, kiddo!!, from 'n' year, hope your family BS is finally fucking OVER, god dammit, you can finally be free from that and changed your fucking surname
 pub async fn render_master() -> Result<()> {
     render_grid(5).await?;
     sections_lines().await?;

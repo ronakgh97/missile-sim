@@ -12,7 +12,6 @@ use nalgebra::Vector3;
 pub struct DeviatedPursuit;
 
 impl GuidanceLaw for DeviatedPursuit {
-
     #[inline]
     fn calculate_acceleration(&self, missile: &Missile, target: &Target) -> Vector3<f64> {
         let range_vec = target.state.position - missile.state.position;
