@@ -1,19 +1,40 @@
 use crate::core::{calculate_closing_speed_simd, calculate_los_rate_simd, norm_simd};
 use crate::entity::{Missile, Target};
-use crate::guidance::GuidanceLawType;
+use crate::guidance::GuidanceLaw;
 use crate::simulation::metrics::SimulationMetrics;
 
-/// Simulation engine that runs the missile-target engagement
+/// The simulation engine that runs the missile-target engagement loop.
+///
+/// Use [`SimulationEngine::new`] to create an engine, then call [`run`] for
+/// a complete simulation or [`step`] for manual control (useful for game loops).
+///
+/// For most use cases, prefer [`Scenario::simulate`] which handles engine
+/// creation internally.
 pub struct SimulationEngine {
+    /// The missile entity.
     pub missile: Missile,
+    /// The target entity.
     pub target: Target,
+    /// Current simulation time in seconds.
     pub time: f64,
+    /// Timestep in seconds.
     pub dt: f64,
+    /// Maximum simulation duration in seconds.
     pub max_time: f64,
+    /// Distance threshold for hit detection.
     pub hit_threshold: f64,
 }
 
 impl SimulationEngine {
+    /// Creates a new simulation engine.
+    ///
+    /// # Arguments
+    ///
+    /// * `missile` — The missile entity.
+    /// * `target` — The target entity.
+    /// * `dt` — Simulation timestep in seconds.
+    /// * `max_time` — Maximum simulation duration.
+    /// * `hit_threshold` — Distance below which the engagement is a hit.
     pub fn new(
         missile: Missile,
         target: Target,
@@ -31,17 +52,19 @@ impl SimulationEngine {
         }
     }
 
-    #[inline]
-    /// Run the simulation with the specified guidance law
-    pub fn run(&mut self, guidance: &GuidanceLawType) -> SimulationMetrics {
+    /// Runs the simulation to completion with the given guidance law.
+    ///
+    /// The loop terminates when:
+    /// - Time exceeds `max_time`
+    /// - Distance drops below `hit_threshold` (hit)
+    /// - Distance increases rapidly (miss — target escaping)
+    pub fn run(&mut self, guidance: &dyn GuidanceLaw) -> SimulationMetrics {
         let mut metrics = SimulationMetrics::new();
 
-        // Estimate number of steps for pre-allocation
-        let memory_cap: f64 = 256_0000.0; // Cap at 256 MB, BECAUSE IT GONNA BLOW UP 😼
+        let memory_cap: f64 = 256_0000.0;
         let steps = ((self.max_time / self.dt).ceil() + 1.0).min(memory_cap) as usize;
         metrics.pre_allocate_steps(steps);
 
-        // Record initial state
         self.record_metrics(&mut metrics, 0.0);
 
         while !self.should_terminate(&metrics) {
@@ -52,27 +75,26 @@ impl SimulationEngine {
         metrics
     }
 
-    /// Perform a single simulation step
-    #[inline]
-    pub fn step(&mut self, guidance: &GuidanceLawType, metrics: &mut SimulationMetrics) {
-        // Calculate guidance command
+    /// Performs a single simulation step and records metrics.
+    ///
+    /// Use this method for real-time/game-loop style control where you
+    /// want to advance the simulation one frame at a time and render
+    /// or process data between steps.
+    #[inline(always)]
+    pub fn step(&mut self, guidance: &dyn GuidanceLaw, metrics: &mut SimulationMetrics) {
         let acceleration = guidance.calculate_acceleration(&self.missile, &self.target);
 
-        // Update missile
+        // Update entities with the calculated acceleration
         self.missile.update(acceleration, self.dt);
-
-        // Update target (constant velocity)
         self.target.update(self.dt);
 
         // Advance time
         self.time += self.dt;
 
-        // Record metrics
         self.record_metrics(metrics, acceleration.norm());
     }
 
-    /// Record metrics for the current timestep
-    #[inline]
+    #[inline(always)]
     fn record_metrics(&self, metrics: &mut SimulationMetrics, accel_magnitude: f64) {
         let los_rate_vec = calculate_los_rate_simd(
             &self.missile.state.position,
@@ -108,16 +130,15 @@ impl SimulationEngine {
             return true;
         }
 
-        let distance = metrics.distance_history.last().unwrap_or(&f64::INFINITY);
+        let distance = metrics.distance_records.last().unwrap_or(&f64::INFINITY);
 
         // Hit threshold
         if *distance < self.hit_threshold {
             return true;
         }
 
-        // Miss (distance increasing rapidly)
-        if metrics.distance_history.len() > 10 {
-            let recent_dist = metrics.distance_history[metrics.distance_history.len() - 10];
+        if metrics.distance_records.len() > 10 {
+            let recent_dist = metrics.distance_records[metrics.distance_records.len() - 10];
             if *distance > recent_dist + 500.0 {
                 return true;
             }
