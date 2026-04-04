@@ -3,28 +3,43 @@ use crate::entity::{Missile, Target};
 use crate::guidance::traits::GuidanceLaw;
 use nalgebra::Vector3;
 
-/// Lead Pursuit (LP) - Predictive guidance
+/// Lead Pursuit (LP) guidance.
+///
+/// Predicts the target's future position based on its current velocity and
+/// aims at that intercept point rather than the current position. This is
+/// more efficient than pure pursuit for crossing targets.
+///
+/// Uses a quadratic solver to find the time-to-intercept from the
+/// missile-target velocity triangle.
+#[derive(Clone, Debug)]
 pub struct LeadPursuit {
-    // How far ahead to predict target position (seconds)
-    pub lead_time: f64,
+    lead_time: f64,
 }
 
 impl LeadPursuit {
-    // Create with explicit lead time
+    /// Creates LP with the given lead time in seconds.
+    ///
+    /// Typical values are 0.5–2.0 seconds.
     pub fn new(lead_time: f64) -> Self {
         Self {
             lead_time: lead_time.max(0.0),
         }
     }
 
-    // Create with default 1 second lead
-    pub fn default() -> Self {
+    /// Returns the lead time.
+    pub fn lead_time(&self) -> f64 {
+        self.lead_time
+    }
+}
+
+impl Default for LeadPursuit {
+    fn default() -> Self {
         Self::new(1.0)
     }
 }
 
 impl GuidanceLaw for LeadPursuit {
-    #[inline]
+    #[inline(always)]
     fn calculate_acceleration(&self, missile: &Missile, target: &Target) -> Vector3<f64> {
         let missile_speed = missile.state.speed();
 
@@ -46,7 +61,6 @@ impl GuidanceLaw for LeadPursuit {
             return Vector3::zeros();
         }
 
-        // Solve quadratic equation for time-to-intercept
         let vt = &target.state.velocity;
         let vt_sq = vt.norm_squared();
         let vm_sq = missile_speed * missile_speed;
@@ -55,9 +69,8 @@ impl GuidanceLaw for LeadPursuit {
         let b = 2.0 * dot_simd(&range_vec, vt);
         let c = range * range;
 
-        let mut intercept_point = target.state.position + vt * self.lead_time; // fallback
+        let mut intercept_point = target.state.position + vt * self.lead_time;
 
-        // Solve quadratic equation
         let discriminant = b * b - 4.0 * a * c;
 
         if discriminant >= 0.0 && a.abs() > 1e-6 {
@@ -73,14 +86,12 @@ impl GuidanceLaw for LeadPursuit {
             } else if t2 > 0.0 {
                 t2
             } else {
-                self.lead_time // no valid solution, use fallback
+                self.lead_time
             };
 
-            // Clamp to reasonable time horizon
             let t_clamped = t_intercept.min(self.lead_time * 2.0).max(0.1);
             intercept_point = target.state.position + vt * t_clamped;
         } else if a.abs() <= 1e-6 && b.abs() > 1e-6 {
-            // Linear case (missile and target speeds are equal)
             let t_intercept = -c / b;
             if t_intercept > 0.0 {
                 let t_clamped = t_intercept.min(self.lead_time * 2.0);

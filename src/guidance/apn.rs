@@ -8,31 +8,38 @@ use nalgebra::Vector3;
 /// Augmented Proportional Navigation (APN) with Zero Effort Miss (ZEM) compensation
 ///
 /// APN enhances PN by anticipating target maneuvers using ZEM:
-/// a_APN = a_PN + (1/τ) * ZEM
+/// a_APN = a_PN + (1/t) * ZEM
 ///
 /// Where:
 /// - a_PN is standard PN acceleration
-/// - τ is time constant (derived from navigation gain)
+/// - T is time constant (derived from navigation gain)
 /// - ZEM is zero effort miss vector (predicted miss if no corrections)
+#[derive(Clone, Debug)]
 pub struct AugmentedProportionalNavigation {
     /// Time constant for ZEM augmentation (typically 0.1-1.0 seconds)
-    pub time_constant: f64,
+    time_constant: f64,
 }
 
 impl AugmentedProportionalNavigation {
     pub fn new(time_constant: f64) -> Self {
         Self {
-            time_constant: time_constant.max(0.01), // Minimum 10ms
+            time_constant: time_constant.max(0.01),
         }
     }
 
-    pub fn default() -> Self {
+    pub fn time_constant(&self) -> f64 {
+        self.time_constant
+    }
+}
+
+impl Default for AugmentedProportionalNavigation {
+    fn default() -> Self {
         Self::new(0.5)
     }
 }
 
 impl GuidanceLaw for AugmentedProportionalNavigation {
-    #[inline]
+    #[inline(always)]
     fn calculate_acceleration(&self, missile: &Missile, target: &Target) -> Vector3<f64> {
         let missile_speed = missile.state.speed();
 
@@ -71,7 +78,7 @@ impl GuidanceLaw for AugmentedProportionalNavigation {
         // PN acceleration magnitude (using missile speed)
         let pn_accel_magnitude = missile.navigation_constant * missile_speed * los_rate_magnitude;
 
-        // --- ZERO EFFORT MISS (ZEM) COMPONENT ---
+        // ZERO EFFORT MISS (ZEM) COMPONENT
         let closing_speed = calculate_closing_speed_simd(
             &missile.state.position,
             &missile.state.velocity,
@@ -85,17 +92,15 @@ impl GuidanceLaw for AugmentedProportionalNavigation {
             let range = norm_simd(&range_vec);
             let time_to_go = range / closing_speed;
 
-            // Clamp time-to-go to reasonable bounds
             let clamped_tgo = time_to_go.clamp(0.1, 5.0);
 
             // Predict positions at intercept time
             let missile_final_pos = missile.state.position + missile.state.velocity * clamped_tgo;
             let target_final_pos = target.state.position + target.state.velocity * clamped_tgo;
 
-            // ZEM is the vector from missile to target at intercept time
             let zem_vector = target_final_pos - missile_final_pos;
 
-            // ZEM acceleration component: (1/τ) * ZEM, but scale by navigation constant
+            // ZEM acceleration component: (1/t) * ZEM, but scale by navigation constant
             zem_vector / self.time_constant * (missile.navigation_constant * 0.5)
         } else {
             // No closing speed, minimal ZEM contribution

@@ -2,8 +2,8 @@ mod apn;
 mod dp;
 mod lp;
 mod pp;
-pub mod ppn;
-pub mod tpn;
+mod ppn;
+mod tpn;
 pub mod traits;
 
 pub use apn::AugmentedProportionalNavigation;
@@ -12,52 +12,106 @@ pub use lp::LeadPursuit;
 pub use pp::PurePursuit;
 pub use ppn::PureProportionalNavigation;
 pub use tpn::TrueProportionalNavigation;
+pub use traits::GuidanceLaw;
 
 use crate::entity::{Missile, Target};
 use nalgebra::Vector3;
-use traits::GuidanceLaw;
 
-/// Enum for static dispatch of guidance laws
+/// Built-in guidance law types for convenient use.
+///
+/// This enum wraps all six guidance algorithms and implements [`GuidanceLaw`],
+/// so it can be passed directly to [`Scenario::simulate`] or [`SimulationEngine::run`].
+///
+/// # Example
+///
+/// ```
+/// use missile_sim::prelude::*;
+///
+/// let guidance = GuidanceLawType::ppn();
+/// // or with parameters:
+/// let apn = GuidanceLawType::apn(0.5);
+/// let lp = GuidanceLawType::lp(1.0);
+/// ```
 #[derive(Debug, Clone)]
 pub enum GuidanceLawType {
+    /// Pure Proportional Navigation.
     PPN,
+    /// True Proportional Navigation.
     TPN,
-    APN(f64), // time_constant
+    /// Augmented Proportional Navigation with ZEM compensation.
+    APN(AugmentedProportionalNavigation),
+    /// Pure Pursuit.
     PP,
+    /// Deviated Pursuit.
     DP,
-    LP(f64), // lead_factor
+    /// Lead Pursuit with intercept prediction.
+    LP(LeadPursuit),
 }
 
 impl GuidanceLawType {
-    #[inline]
-    pub fn calculate_acceleration(&self, missile: &Missile, target: &Target) -> Vector3<f64> {
+    /// Creates a Pure Proportional Navigation guidance law.
+    pub fn ppn() -> Self {
+        GuidanceLawType::PPN
+    }
+
+    /// Creates a True Proportional Navigation guidance law.
+    pub fn tpn() -> Self {
+        GuidanceLawType::TPN
+    }
+
+    /// Creates an Augmented Proportional Navigation guidance law.
+    ///
+    /// # Arguments
+    ///
+    /// * `time_constant` — ZEM (ZERO EFFECT MISS) augmentation time constant (typically 0.1–1.0 s).
+    pub fn apn(time_constant: f64) -> Self {
+        GuidanceLawType::APN(AugmentedProportionalNavigation::new(time_constant))
+    }
+
+    /// Creates a Pure Pursuit guidance law.
+    pub fn pp() -> Self {
+        GuidanceLawType::PP
+    }
+
+    /// Creates a Deviated Pursuit guidance law.
+    pub fn dp() -> Self {
+        GuidanceLawType::DP
+    }
+
+    /// Creates a Lead Pursuit guidance law.
+    ///
+    /// # Arguments
+    ///
+    /// * `lead_time` — How far ahead to predict target position (seconds).
+    pub fn lp(lead_time: f64) -> Self {
+        GuidanceLawType::LP(LeadPursuit::new(lead_time))
+    }
+
+    /// Returns this guidance law as a trait object for use with custom algorithms.
+    pub fn as_dyn(&self) -> &dyn GuidanceLaw {
         match self {
-            GuidanceLawType::PPN => {
-                PureProportionalNavigation.calculate_acceleration(missile, target)
-            }
-            GuidanceLawType::TPN => {
-                TrueProportionalNavigation.calculate_acceleration(missile, target)
-            }
-            GuidanceLawType::APN(time_constant) => {
-                AugmentedProportionalNavigation::new(*time_constant)
-                    .calculate_acceleration(missile, target)
-            }
-            GuidanceLawType::PP => PurePursuit.calculate_acceleration(missile, target),
-            GuidanceLawType::DP => DeviatedPursuit.calculate_acceleration(missile, target),
-            GuidanceLawType::LP(lead_factor) => {
-                LeadPursuit::new(*lead_factor).calculate_acceleration(missile, target)
-            }
+            GuidanceLawType::PPN => &PureProportionalNavigation,
+            GuidanceLawType::TPN => &TrueProportionalNavigation,
+            GuidanceLawType::APN(apn) => apn,
+            GuidanceLawType::PP => &PurePursuit,
+            GuidanceLawType::DP => &DeviatedPursuit,
+            GuidanceLawType::LP(lp) => lp,
         }
     }
 
+    /// Returns the name of this guidance law.
     pub fn name(&self) -> &str {
-        match self {
-            GuidanceLawType::PPN => "PPN",
-            GuidanceLawType::TPN => "TPN",
-            GuidanceLawType::APN(_) => "APN",
-            GuidanceLawType::PP => "PP",
-            GuidanceLawType::DP => "DP",
-            GuidanceLawType::LP(_) => "LP",
-        }
+        self.as_dyn().name()
+    }
+}
+
+impl GuidanceLaw for GuidanceLawType {
+    #[inline]
+    fn calculate_acceleration(&self, missile: &Missile, target: &Target) -> Vector3<f64> {
+        self.as_dyn().calculate_acceleration(missile, target)
+    }
+
+    fn name(&self) -> &str {
+        self.as_dyn().name()
     }
 }

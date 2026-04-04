@@ -7,7 +7,7 @@ use nalgebra::Vector3;
 pub struct PurePursuit;
 
 impl GuidanceLaw for PurePursuit {
-    #[inline]
+    #[inline(always)]
     fn calculate_acceleration(&self, missile: &Missile, target: &Target) -> Vector3<f64> {
         let range_vec = target.state.position - missile.state.position;
         let range = norm_simd(&range_vec);
