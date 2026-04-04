@@ -5,14 +5,14 @@ use nalgebra::Vector3;
 
 /// Deviated Pursuit (DP) - Enhanced pursuit with velocity matching and adaptive aggression
 ///
-/// Improvements over Pure Pursuit:
+/// Improvements over [`Pure Pursuit`](crate::guidance::PurePursuit):
 /// - Short-term velocity vector alignment
 /// - Range-dependent aggression (more aggressive at close range)
 /// - Closing speed awareness for energy management
 pub struct DeviatedPursuit;
 
 impl GuidanceLaw for DeviatedPursuit {
-    #[inline(always)]
+    #[inline]
     fn calculate_acceleration(&self, missile: &Missile, target: &Target) -> Vector3<f64> {
         let range_vec = target.state.position - missile.state.position;
         let range = norm_simd(&range_vec);

@@ -100,6 +100,7 @@ impl Target {
     }
 
     /// Advances the target state by `dt` seconds using its constant acceleration.
+    #[inline]
     pub fn update(&mut self, dt: f64) {
         self.state.update(self.acceleration, dt);
     }

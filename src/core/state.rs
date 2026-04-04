@@ -29,6 +29,7 @@ impl State3D {
     /// Advances the state forward by `dt` seconds under the given acceleration.
     ///
     /// Uses simple Euler integration: velocity is updated first, then position.
+    #[inline(always)]
     pub fn update(&mut self, acceleration: Vector3<f64>, dt: f64) {
         self.velocity += acceleration * dt;
         self.position += self.velocity * dt;

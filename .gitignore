@@ -3,4 +3,4 @@
 /data
 .venv/
 .idea
-summary.csv
+Summary_*.csv

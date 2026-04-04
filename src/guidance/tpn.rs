@@ -5,10 +5,13 @@ use crate::entity::{Missile, Target};
 use crate::guidance::traits::GuidanceLaw;
 use nalgebra::Vector3;
 
+/// Simplified version of [`Proportional Navigation`](crate::guidance::PureProportionalNavigation) that does not include closing speed compensation.
+/// In [`PPN`](crate::guidance::PureProportionalNavigation), the acceleration command is always perpendicular to the missile's velocity and directed toward the line-of-sight (LOS) rate vector.
+/// This makes [`PPN`](crate::guidance::PureProportionalNavigation) less effective against maneuvering targets compared to standard PN, but it can be useful for certain scenarios where simplicity is desired.
 pub struct TrueProportionalNavigation;
 
 impl GuidanceLaw for TrueProportionalNavigation {
-    #[inline(always)]
+    #[inline]
     fn calculate_acceleration(&self, missile: &Missile, target: &Target) -> Vector3<f64> {
         let los_rate_vector = calculate_los_rate_simd(
             &missile.state.position,

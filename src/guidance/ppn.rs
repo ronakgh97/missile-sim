@@ -3,10 +3,12 @@ use crate::entity::{Missile, Target};
 use crate::guidance::traits::GuidanceLaw;
 use nalgebra::Vector3;
 
+/// Pure Proportional Navigation (PPN)
+/// Base PN without closing speed compensation, acceleration perpendicular to velocity toward LOS rate direction
 pub struct PureProportionalNavigation;
 
 impl GuidanceLaw for PureProportionalNavigation {
-    #[inline(always)]
+    #[inline]
     fn calculate_acceleration(&self, missile: &Missile, target: &Target) -> Vector3<f64> {
         let los_rate_vector = calculate_los_rate_simd(
             &missile.state.position,

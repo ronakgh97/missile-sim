@@ -28,7 +28,7 @@
 //!     .build()
 //!     .unwrap();
 //!
-//! let metrics = scenario.simulate(&GuidanceLawType::ppn());
+//! let metrics = scenario.simulate(&PureProportionalNavigation);
 //! println!("{}", metrics.console_summary());
 //! ```
 //!
@@ -78,8 +78,8 @@ pub mod prelude {
         Missile, MissileConfig, MissileConfigBuilder, Target, TargetConfig, TargetConfigBuilder,
     };
     pub use crate::guidance::{
-        AugmentedProportionalNavigation, DeviatedPursuit, GuidanceLaw, GuidanceLawType,
-        LeadPursuit, PureProportionalNavigation, PurePursuit, TrueProportionalNavigation,
+        AugmentedProportionalNavigation, DeviatedPursuit, GuidanceLaw, LeadPursuit,
+        PureProportionalNavigation, PurePursuit, TrueProportionalNavigation,
     };
     pub use crate::simulation::{Scenario, ScenarioBuilder, SimulationEngine, SimulationMetrics};
     pub use nalgebra::*;

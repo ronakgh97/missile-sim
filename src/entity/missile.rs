@@ -141,6 +141,7 @@ impl Missile {
     /// Updates the missile state by applying the given acceleration for `dt` seconds.
     ///
     /// The acceleration is clamped to `max_acceleration` if it exceeds the limit.
+    #[inline]
     pub fn update(&mut self, acceleration: Vector3<f64>, dt: f64) {
         let clamped_accel = if acceleration.norm() > self.max_acceleration {
             acceleration.normalize() * self.max_acceleration

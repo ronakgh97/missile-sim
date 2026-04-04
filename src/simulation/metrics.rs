@@ -68,6 +68,7 @@ impl SimulationMetrics {
         self.closing_speed_records.reserve(steps);
     }
 
+    #[inline]
     #[allow(clippy::too_many_arguments)]
     /// Records a single timestep's data.
     pub fn record(

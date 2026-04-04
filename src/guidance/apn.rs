@@ -39,7 +39,7 @@ impl Default for AugmentedProportionalNavigation {
 }
 
 impl GuidanceLaw for AugmentedProportionalNavigation {
-    #[inline(always)]
+    #[inline]
     fn calculate_acceleration(&self, missile: &Missile, target: &Target) -> Vector3<f64> {
         let missile_speed = missile.state.speed();
 
@@ -86,17 +86,15 @@ impl GuidanceLaw for AugmentedProportionalNavigation {
             &target.state.velocity,
         );
 
-        // Calculate ZEM vector with better handling
+        // Calculate ZEM vector with  handling
         let zem_accel = if closing_speed > 1e-6 {
             let range_vec = target.state.position - missile.state.position;
             let range = norm_simd(&range_vec);
-            let time_to_go = range / closing_speed;
-
-            let clamped_tgo = time_to_go.clamp(0.1, 5.0);
+            let time_to_go = (range / closing_speed).clamp(0.1, 5.0); // Clamp to reasonable bounds
 
             // Predict positions at intercept time
-            let missile_final_pos = missile.state.position + missile.state.velocity * clamped_tgo;
-            let target_final_pos = target.state.position + target.state.velocity * clamped_tgo;
+            let missile_final_pos = missile.state.position + missile.state.velocity * time_to_go;
+            let target_final_pos = target.state.position + target.state.velocity * time_to_go;
 
             let zem_vector = target_final_pos - missile_final_pos;
 

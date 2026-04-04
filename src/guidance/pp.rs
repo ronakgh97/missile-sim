@@ -3,11 +3,11 @@ use crate::entity::{Missile, Target};
 use crate::guidance::traits::GuidanceLaw;
 use nalgebra::Vector3;
 
-/// Pure Pursuit (Chase) Guidance
+/// Very Basic Pure Pursuit (Chase) Guidance
 pub struct PurePursuit;
 
 impl GuidanceLaw for PurePursuit {
-    #[inline(always)]
+    #[inline]
     fn calculate_acceleration(&self, missile: &Missile, target: &Target) -> Vector3<f64> {
         let range_vec = target.state.position - missile.state.position;
         let range = norm_simd(&range_vec);

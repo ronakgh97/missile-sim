@@ -64,6 +64,8 @@ fn main() {
 }
 ```
 
+Checkout the `examples` directory for more detailed example scenarios and performance comparisons across guidance laws.
+
 ### Example Scenarios
 
 ```rust

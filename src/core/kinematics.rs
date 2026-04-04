@@ -16,6 +16,7 @@ use nalgebra::Vector3;
 ///
 /// A 3D vector representing the LOS rate. The magnitude is the angular rate (rad/s).
 /// Returns zero if range is negligible.
+#[inline(always)]
 pub fn calculate_los_rate(
     missile_pos: &Vector3<f64>,
     missile_vel: &Vector3<f64>,
@@ -40,7 +41,7 @@ pub fn calculate_los_rate(
 
 /// Calculates the closing speed between missile and target.
 ///
-/// Closing speed is the rate at which the distance between missile and target is decreasing.
+/// Closing speed is BASICALLY the rate at which the distance between missile and target is decreasing.
 /// Positive values mean the entities are approaching; negative means they are separating.
 ///
 /// # Arguments
@@ -53,6 +54,7 @@ pub fn calculate_los_rate(
 /// # Returns
 ///
 /// The scalar closing speed. Returns zero if range is negligible.
+#[inline(always)]
 pub fn calculate_closing_speed(
     missile_pos: &Vector3<f64>,
     missile_vel: &Vector3<f64>,

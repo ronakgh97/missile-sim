@@ -3,7 +3,7 @@ use wide::f64x4;
 
 /// SIMD-optimized calculation of line-of-sight (LOS) rate vector
 /// Similar to [`calculate_los_rate`](crate::core::calculate_los_rate) but uses SIMD for performance.
-#[inline]
+#[inline(always)]
 pub fn calculate_los_rate_simd(
     missile_pos: &Vector3<f64>,
     missile_vel: &Vector3<f64>,
@@ -59,7 +59,7 @@ pub fn calculate_los_rate_simd(
 
 /// SIMD-optimized closing speed calculation
 /// Similar to [`calculate_closing_speed`](crate::core::calculate_closing_speed) but uses SIMD for performance.
-#[inline]
+#[inline(always)]
 pub fn calculate_closing_speed_simd(
     missile_pos: &Vector3<f64>,
     missile_vel: &Vector3<f64>,
@@ -98,7 +98,7 @@ pub fn calculate_closing_speed_simd(
 
 /// SIMD-optimized vector normalization
 /// Similar to [`normalize`](Vector3::normalize) but uses SIMD for performance and handles near-zero vectors gracefully.
-#[inline]
+#[inline(always)]
 pub fn normalize_simd(v: &Vector3<f64>) -> Vector3<f64> {
     let v_simd = f64x4::new([v.x, v.y, v.z, 0.0]);
     let v_arr = v_simd.to_array();
@@ -118,7 +118,7 @@ pub fn normalize_simd(v: &Vector3<f64>) -> Vector3<f64> {
 
 /// SIMD-optimized dot product
 /// Similar to [`dot`](Vector3::dot) but uses SIMD for performance.
-#[inline]
+#[inline(always)]
 pub fn dot_simd(a: &Vector3<f64>, b: &Vector3<f64>) -> f64 {
     let a_simd = f64x4::new([a.x, a.y, a.z, 0.0]);
     let b_simd = f64x4::new([b.x, b.y, b.z, 0.0]);
@@ -131,7 +131,7 @@ pub fn dot_simd(a: &Vector3<f64>, b: &Vector3<f64>) -> f64 {
 
 /// SIMD-optimized vector magnitude
 /// Similar to [`norm`](Vector3::norm) but uses SIMD for performance.
-#[inline]
+#[inline(always)]
 pub fn norm_simd(v: &Vector3<f64>) -> f64 {
     let v_simd = f64x4::new([v.x, v.y, v.z, 0.0]);
     let arr = v_simd.to_array();
@@ -143,7 +143,7 @@ pub fn norm_simd(v: &Vector3<f64>) -> f64 {
 /// SIMD-optimized vector subtraction and scaling
 /// Computes (a - b) * scale using SIMD for performance.
 #[allow(dead_code)]
-#[inline]
+#[inline(always)]
 pub fn sub_and_scale_simd(a: &Vector3<f64>, b: &Vector3<f64>, scale: f64) -> Vector3<f64> {
     let a_simd = f64x4::new([a.x, a.y, a.z, 0.0]);
     let b_simd = f64x4::new([b.x, b.y, b.z, 0.0]);

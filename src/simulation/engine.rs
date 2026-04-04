@@ -67,6 +67,7 @@ impl SimulationEngine {
 
         self.record_metrics(&mut metrics, 0.0);
 
+        // Step loop till terminate
         while !self.should_terminate(&metrics) {
             self.step(guidance, &mut metrics);
         }
@@ -91,10 +92,10 @@ impl SimulationEngine {
         // Advance time
         self.time += self.dt;
 
-        self.record_metrics(metrics, acceleration.norm());
+        self.record_metrics(metrics, norm_simd(&acceleration));
     }
 
-    #[inline(always)]
+    #[inline]
     fn record_metrics(&self, metrics: &mut SimulationMetrics, accel_magnitude: f64) {
         let los_rate_vec = calculate_los_rate_simd(
             &self.missile.state.position,

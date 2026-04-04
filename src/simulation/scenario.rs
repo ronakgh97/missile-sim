@@ -31,7 +31,7 @@ use crate::simulation::metrics::SimulationMetrics;
 ///     .build()
 ///     .unwrap();
 ///
-/// let metrics = scenario.simulate(&GuidanceLawType::ppn());
+/// let metrics = scenario.simulate(&PureProportionalNavigation);
 /// ```
 #[derive(Clone, Debug)]
 pub struct Scenario {
@@ -58,8 +58,8 @@ impl Scenario {
     ///
     /// # Arguments
     ///
-    /// * `guidance` — Any type implementing [`GuidanceLaw`], including
-    ///   [`GuidanceLawType`] or a custom implementation.
+    /// * `guidance` — Any type implementing [`GuidanceLaw`], such as one of the
+    ///   built-in laws (e.g., `PureProportionalNavigation`) or a custom implementation.
     pub fn simulate(&self, guidance: &dyn GuidanceLaw) -> SimulationMetrics {
         let missile = Missile::new(self.missile_config.clone());
         let target = Target::new(self.target_config.clone());

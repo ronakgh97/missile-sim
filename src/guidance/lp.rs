@@ -39,7 +39,7 @@ impl Default for LeadPursuit {
 }
 
 impl GuidanceLaw for LeadPursuit {
-    #[inline(always)]
+    #[inline]
     fn calculate_acceleration(&self, missile: &Missile, target: &Target) -> Vector3<f64> {
         let missile_speed = missile.state.speed();
 
