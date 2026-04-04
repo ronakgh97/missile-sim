@@ -2,19 +2,10 @@
 name = "missile-sim"
 version = "0.1.0"
 edition = "2024"
-# autobins = false
 
 [lib]
 name = "missile_sim"
 path = "src/lib.rs"
-
-[[bin]]
-name = "ms"
-path = "src/bin/cli.rs"
-
-[[bin]]
-name = "ms_gui"
-path = "src/bin/gui.rs"
 
 [profile.release]
 opt-level = 3
@@ -31,18 +22,13 @@ debug = true
 incremental = true
 
 [dependencies]
-tokio = { version = "1.49.0", features = ["full"] }
-clap = { version = "4.5.60", features = ["derive"] }
-# async-trait = "0.1.89"
-plotters = "0.3.7"
-colored = "3.1.1"
-nalgebra = "0.34.1"
+nalgebra = { version = "0.34.2", features = ["serde-serialize"] }
 serde = { version = "1.0.228", features = ["derive"] }
-serde_json = "1.0.149"
-csv = "1.4.0"
 anyhow = "1.0.102"
-rand = "0.10.0"
+wide = "1.2.0"
+
+[dev-dependencies]
 rayon = "1.11.0"
-wide = "1.1.1"
-cliclack = "0.3.9"
-macroquad = "0.4.14"
+rand = "0.10.0"
+csv = "1.4.0"
+colored = "3.1.1"
