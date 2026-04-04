@@ -48,17 +48,13 @@ fn demo_basic_scenario() {
 fn demo_all_guidance_laws() {
     println!("All Guidance Laws");
 
-    // SATISFY the damn borrow checker
-    let apn = AugmentedProportionalNavigation::new(0.5);
-    let lp = LeadPursuit::new(1.0);
-
-    let guidance_laws: Vec<(&str, &dyn GuidanceLaw)> = vec![
-        ("PPN", &PureProportionalNavigation),
-        ("TPN", &TrueProportionalNavigation),
-        ("APN", &apn),
-        ("PP", &PurePursuit),
-        ("DP", &DeviatedPursuit),
-        ("LP", &lp),
+    let guidance_laws: Vec<(&str, Box<dyn GuidanceLaw>)> = vec![
+        ("PPN", Box::new(PureProportionalNavigation)),
+        ("TPN", Box::new(TrueProportionalNavigation)),
+        ("APN", Box::new(AugmentedProportionalNavigation::new(0.575))),
+        ("PP", Box::new(PurePursuit)),
+        ("DP", Box::new(DeviatedPursuit)),
+        ("LP", Box::new(LeadPursuit::new(1.05))),
     ];
 
     let scenario = Scenario::builder("comparison")
@@ -74,7 +70,7 @@ fn demo_all_guidance_laws() {
             velocity: Vector3::new(-50.0, 0.0, 0.0),
             acceleration: Vector3::zeros(),
         })
-        .dt(0.001)
+        .dt(0.00001)
         .total_time(30.0)
         .hit_threshold(10.0)
         .build()
@@ -87,7 +83,7 @@ fn demo_all_guidance_laws() {
     println!("{}", "-".repeat(42));
 
     for (name, law) in &guidance_laws {
-        let metrics = scenario.simulate(*law);
+        let metrics = scenario.simulate(law.as_ref());
         println!(
             "{:<6} {:>8.2}s {:>10.2} {:>8}",
             name,
