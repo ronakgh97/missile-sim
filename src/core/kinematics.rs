@@ -1,6 +1,21 @@
 use nalgebra::Vector3;
 
-/// Calculate line-of-sight (LOS) rate vector
+/// Calculates the line-of-sight (LOS) rate vector.
+///
+/// The LOS rate is the angular velocity of the line connecting the missile to the target.
+/// It is computed as the tangential component of relative velocity divided by range.
+///
+/// # Arguments
+///
+/// * `missile_pos` — Missile position.
+/// * `missile_vel` — Missile velocity.
+/// * `target_pos` — Target position.
+/// * `target_vel` — Target velocity.
+///
+/// # Returns
+///
+/// A 3D vector representing the LOS rate. The magnitude is the angular rate (rad/s).
+/// Returns zero if range is negligible.
 pub fn calculate_los_rate(
     missile_pos: &Vector3<f64>,
     missile_vel: &Vector3<f64>,
@@ -11,7 +26,6 @@ pub fn calculate_los_rate(
     let range = range_vec.norm();
 
     if range < 1e-6 {
-        // Too Close
         return Vector3::zeros();
     }
 
@@ -24,7 +38,21 @@ pub fn calculate_los_rate(
     tangential_velocity / range
 }
 
-/// Calculate closing speed (should negative when approaching)
+/// Calculates the closing speed between missile and target.
+///
+/// Closing speed is the rate at which the distance between missile and target is decreasing.
+/// Positive values mean the entities are approaching; negative means they are separating.
+///
+/// # Arguments
+///
+/// * `missile_pos` — Missile position.
+/// * `missile_vel` — Missile velocity.
+/// * `target_pos` — Target position.
+/// * `target_vel` — Target velocity.
+///
+/// # Returns
+///
+/// The scalar closing speed. Returns zero if range is negligible.
 pub fn calculate_closing_speed(
     missile_pos: &Vector3<f64>,
     missile_vel: &Vector3<f64>,
