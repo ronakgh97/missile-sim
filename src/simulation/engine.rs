@@ -1,4 +1,4 @@
-use crate::core::{calculate_closing_speed_simd, calculate_los_rate_simd, norm_simd};
+use crate::core::{calculate_closing_speed, calculate_los_rate};
 use crate::entity::{Missile, Target};
 use crate::guidance::GuidanceLaw;
 use crate::simulation::metrics::SimulationMetrics;
@@ -27,8 +27,6 @@ pub struct SimulationEngine {
 
 impl SimulationEngine {
     /// Creates a new simulation engine.
-    ///
-    /// # Arguments
     ///
     /// * `missile` — The missile entity.
     /// * `target` — The target entity.
@@ -59,12 +57,10 @@ impl SimulationEngine {
     /// - Distance drops below `hit_threshold` (hit)
     /// - Distance increases rapidly (miss — target escaping)
     pub fn run(&mut self, guidance: &dyn GuidanceLaw) -> SimulationMetrics {
-        let mut metrics = SimulationMetrics::new();
+        const PRE_ALLOC: f64 = 768_000.0;
+        let steps = ((self.max_time / self.dt).ceil() + 1.0).min(PRE_ALLOC) as usize;
 
-        let memory_cap: f64 = 256_0000.0;
-        let steps = ((self.max_time / self.dt).ceil() + 1.0).min(memory_cap) as usize;
-        metrics.pre_allocate_steps(steps);
-
+        let mut metrics = SimulationMetrics::init(steps);
         self.record_metrics(&mut metrics, 0.0);
 
         // Step loop till terminate
@@ -85,27 +81,26 @@ impl SimulationEngine {
     pub fn step(&mut self, guidance: &dyn GuidanceLaw, metrics: &mut SimulationMetrics) {
         let acceleration = guidance.calculate_acceleration(&self.missile, &self.target);
 
-        // Update entities with the calculated acceleration
+        // update entities with the calculated acceleration
         self.missile.update(acceleration, self.dt);
         self.target.update(self.dt);
-
-        // Advance time
+        // advance time
         self.time += self.dt;
-
-        self.record_metrics(metrics, norm_simd(&acceleration));
+        // record
+        self.record_metrics(metrics, acceleration.norm());
     }
 
-    #[inline]
+    #[inline(always)]
     fn record_metrics(&self, metrics: &mut SimulationMetrics, accel_magnitude: f64) {
-        let los_rate_vec = calculate_los_rate_simd(
+        let los_rate_vec = calculate_los_rate(
             &self.missile.state.position,
             &self.missile.state.velocity,
             &self.target.state.position,
             &self.target.state.velocity,
         );
-        let los_rate = norm_simd(&los_rate_vec);
+        let los_rate = los_rate_vec.norm();
 
-        let closing_speed = calculate_closing_speed_simd(
+        let closing_speed = calculate_closing_speed(
             &self.missile.state.position,
             &self.missile.state.velocity,
             &self.target.state.position,
@@ -125,7 +120,7 @@ impl SimulationEngine {
     }
 
     /// Determine if the simulation should terminate
-    #[inline]
+    #[inline(always)]
     fn should_terminate(&self, metrics: &SimulationMetrics) -> bool {
         if self.time >= self.max_time {
             return true;

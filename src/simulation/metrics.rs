@@ -1,7 +1,7 @@
 use nalgebra::Vector3;
 use serde::{Deserialize, Serialize};
 
-/// Time-series metrics collected during a simulation run. (Can be de/serialized for logging or analysis.)
+/// Time-series metrics collected during a simulation run. (Can be de/serialized for logging or analysis)
 ///
 /// All trajectory and state data is stored as parallel vectors indexed by timestep.
 /// After simulation completes, `hit` and `miss_distance` contain the final result.
@@ -32,45 +32,34 @@ pub struct SimulationMetrics {
 }
 
 impl Default for SimulationMetrics {
+    /// Init with `512k` steps to avoid reallocations during simulations.
     fn default() -> Self {
-        Self::new()
+        Self::init(512_000)
     }
 }
 
 impl SimulationMetrics {
-    /// Creates empty metrics ready for recording.
-    pub fn new() -> Self {
+    /// Initializes a new `SimulationMetrics` with preallocated capacity for the vectors.
+    pub fn init(capacity: usize) -> Self {
         Self {
-            missile_trajectory: Vec::new(),
-            missile_velocity: Vec::new(),
-            target_trajectory: Vec::new(),
-            target_velocity: Vec::new(),
-            time_history: Vec::new(),
-            distance_records: Vec::new(),
-            acceleration_records: Vec::new(),
-            los_rate_records: Vec::new(),
-            closing_speed_records: Vec::new(),
+            missile_trajectory: Vec::with_capacity(capacity),
+            missile_velocity: Vec::with_capacity(capacity),
+            target_trajectory: Vec::with_capacity(capacity),
+            target_velocity: Vec::with_capacity(capacity),
+            time_history: Vec::with_capacity(capacity),
+            distance_records: Vec::with_capacity(capacity),
+            acceleration_records: Vec::with_capacity(capacity),
+            los_rate_records: Vec::with_capacity(capacity),
+            closing_speed_records: Vec::with_capacity(capacity),
             hit: false,
             miss_distance: f64::INFINITY,
         }
     }
 
-    /// Pre-allocates capacity for all vectors to avoid reallocations.
-    pub fn pre_allocate_steps(&mut self, steps: usize) {
-        self.missile_trajectory.reserve(steps);
-        self.missile_velocity.reserve(steps);
-        self.target_trajectory.reserve(steps);
-        self.target_velocity.reserve(steps);
-        self.time_history.reserve(steps);
-        self.distance_records.reserve(steps);
-        self.acceleration_records.reserve(steps);
-        self.los_rate_records.reserve(steps);
-        self.closing_speed_records.reserve(steps);
-    }
-
+    /// Records the state and metrics for a single timestep.
+    /// This is called internally by the `SimulationEngine` at each step.
     #[inline]
     #[allow(clippy::too_many_arguments)]
-    /// Records a single timestep's data.
     pub fn record(
         &mut self,
         time: f64,
@@ -100,11 +89,13 @@ impl SimulationMetrics {
     }
 
     /// Finalizes the metrics by determining hit/miss based on the threshold.
+    #[inline]
     pub fn finalize(&mut self, hit_threshold: f64) {
         self.hit = self.miss_distance < hit_threshold;
     }
 
     /// Returns a one-line summary of the simulation result.
+    #[inline]
     pub fn console_summary(&self) -> String {
         format!(
             "Duration: {:.2}s | Miss Distance: {:.2} | Hit: {}",

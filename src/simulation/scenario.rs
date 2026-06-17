@@ -4,34 +4,33 @@ use crate::simulation::engine::SimulationEngine;
 use crate::simulation::metrics::SimulationMetrics;
 
 /// A complete missile-target engagement scenario.
-///
 /// Contains all configuration needed to run a simulation: missile and target
-/// parameters, timestep, duration, and hit threshold. Use [`Scenario::builder`]
-/// for fluent construction, or construct directly.
-///
-/// # Example
+/// parameters, timestep, guidance laws, duration, and hit threshold.
+/// Use [`Scenario::builder`] for construction, or construct directly.
 ///
 /// ```
 /// use missile_sim::prelude::*;
-/// use nalgebra::Vector3;
 ///
-/// let scenario = Scenario::builder("intercept")
-///     .missile_config(MissileConfig {
+/// fn main() {
+///   let scenario = Scenario::builder("intercept")
+///      .missile_config(MissileConfig {
 ///         position: Vector3::new(0.0, 0.0, 0.0),
 ///         velocity: Vector3::new(100.0, 0.0, 0.0),
 ///         max_acceleration: 30.0,
 ///         navigation_constant: 4.0,
 ///         max_closing_speed: 1000.0,
-///     })
-///     .target_config(TargetConfig {
+///      })
+///      .target_config(TargetConfig {
 ///         position: Vector3::new(1000.0, 0.0, 0.0),
 ///         velocity: Vector3::new(0.0, 0.0, 0.0),
 ///         acceleration: Vector3::zeros(),
-///     })
-///     .build()
-///     .unwrap();
+///      })
+///      .build()
+///      .unwrap();
 ///
-/// let metrics = scenario.simulate(&PureProportionalNavigation);
+///  // this simulates the scenario and store the metrics
+///  let metrics = scenario.simulate(&PureProportionalNavigation);
+/// }
 /// ```
 #[derive(Clone, Debug)]
 pub struct Scenario {
@@ -52,14 +51,11 @@ pub struct Scenario {
 
 impl Scenario {
     /// Runs the simulation with the given guidance law and returns metrics.
-    ///
     /// This is a convenience method that creates a [`SimulationEngine`] internally
     /// and runs it to completion.
     ///
-    /// # Arguments
-    ///
-    /// * `guidance` — Any type implementing [`GuidanceLaw`], such as one of the
-    ///   built-in laws (e.g., `PureProportionalNavigation`) or a custom implementation.
+    /// `guidance` — Any type implementing [`GuidanceLaw`], such as one of the
+    ///  built-in laws (e.g., `PureProportionalNavigation`) or a custom implementation.
     pub fn simulate(&self, guidance: &dyn GuidanceLaw) -> SimulationMetrics {
         let missile = Missile::new(self.missile_config.clone());
         let target = Target::new(self.target_config.clone());
@@ -83,14 +79,9 @@ impl Scenario {
 }
 
 /// Builder for [`Scenario`].
-///
-/// # Defaults
-///
-/// | Field | Default |
-/// |-------|---------|
-/// | dt | `0.01` |
-/// | total_time | `60.0` |
-/// | hit_threshold | `5.0` |
+/// * dt - `0.01`
+/// * total_time - `60.0`
+/// * hit_threshold - `5.0`
 pub struct ScenarioBuilder {
     name: String,
     missile_config: Option<MissileConfig>,
