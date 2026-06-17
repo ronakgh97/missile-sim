@@ -8,7 +8,7 @@ use crate::simulation::metrics::SimulationMetrics;
 /// parameters, timestep, guidance laws, duration, and hit threshold.
 /// Use [`Scenario::builder`] for construction, or construct directly.
 ///
-/// ```
+/// ```rust
 /// use missile_sim::prelude::*;
 ///
 /// fn main() {

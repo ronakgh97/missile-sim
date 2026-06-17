@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 /// Configuration parameters for a missile.
 ///
 /// This struct is serializable and can be loaded from JSON or other formats.
-/// Use `MissileConfig::builder()` for convenient construction.
+/// Use [`MissileConfig::builder()`] for convenient construction.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct MissileConfig {
     /// Initial position of the missile.
@@ -30,14 +30,12 @@ impl MissileConfig {
 
 /// Builder for [`MissileConfig`].
 ///
-/// # Defaults
-///
 /// | Field | Default |
 /// |-------|---------|
 /// | position | `(0, 0, 0)` |
 /// | velocity | `(0, 0, 0)` |
 /// | max_acceleration | `1000.0` |
-/// | navigation_constant | `4.0` |
+/// | navigation_constant | `3.0` |
 /// | max_closing_speed | `5000.0` |
 pub struct MissileConfigBuilder {
     position: Vector3<f64>,
@@ -140,8 +138,8 @@ impl Missile {
 
     /// Updates the missile state by applying the given acceleration for `dt` seconds.
     ///
-    /// The acceleration is clamped to `max_acceleration` if it exceeds the limit.
-    #[inline]
+    /// The acceleration is clamped to `max_acceleration` if it exceeds the limit and projected perpendicular to the current velocity
+    #[inline(always)]
     pub fn update(&mut self, acceleration: Vector3<f64>, dt: f64) {
         let clamped_accel = if acceleration.norm() > self.max_acceleration {
             acceleration.normalize() * self.max_acceleration
@@ -149,6 +147,15 @@ impl Missile {
             acceleration
         };
 
-        self.state.update(clamped_accel, dt);
+        // project acceleration perpendicular to velocity
+        let speed = self.state.speed();
+        let perp_accel = if speed > 1e-6 {
+            let v_hat = self.state.velocity / speed;
+            clamped_accel - v_hat * v_hat.dot(&clamped_accel)
+        } else {
+            clamped_accel
+        };
+
+        self.state.update(perp_accel, dt);
     }
 }

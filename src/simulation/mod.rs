@@ -1,6 +1,6 @@
-pub mod engine;
-pub mod metrics;
-pub mod scenario;
+mod engine;
+mod metrics;
+mod scenario;
 
 pub use engine::SimulationEngine;
 pub use metrics::SimulationMetrics;

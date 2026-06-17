@@ -23,7 +23,6 @@ impl TargetConfig {
 }
 
 /// Builder for [`TargetConfig`].
-///
 /// All fields default to zero vectors.
 pub struct TargetConfigBuilder {
     position: nalgebra::Vector3<f64>,
@@ -100,7 +99,7 @@ impl Target {
     }
 
     /// Advances the target state by `dt` seconds using its constant acceleration.
-    #[inline]
+    #[inline(always)]
     pub fn update(&mut self, dt: f64) {
         self.state.update(self.acceleration, dt);
     }
