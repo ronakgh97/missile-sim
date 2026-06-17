@@ -1,4 +1,4 @@
-use crate::core::{dot_simd, norm_simd, normalize_simd};
+use crate::core::calculate_closing_speed;
 use crate::entity::{Missile, Target};
 use crate::guidance::traits::GuidanceLaw;
 use nalgebra::Vector3;
@@ -6,20 +6,20 @@ use nalgebra::Vector3;
 /// Lead Pursuit (LP) guidance.
 ///
 /// Predicts the target's future position based on its current velocity and
-/// aims at that intercept point rather than the current position. This is
-/// more efficient than pure pursuit for crossing targets.
+/// aims at that intercept point rather than the current position.
+/// More efficient than pure pursuit for crossing targets.
 ///
-/// Uses a quadratic solver to find the time-to-intercept from the
-/// missile-target velocity triangle.
-#[derive(Clone, Debug)]
+/// a_c = lateral_unit * N * V_m * lateral_norm
+/// Where:
+/// - aim_dir = normalize(aim_point - M_pos)
+/// - aim_point = T_pos + V_t * t_intercept
+/// - t_intercept = r / V_closing
 pub struct LeadPursuit {
     lead_time: f64,
 }
 
 impl LeadPursuit {
     /// Creates LP with the given lead time in seconds.
-    ///
-    /// Typical values are 0.5–2.0 seconds.
     pub fn new(lead_time: f64) -> Self {
         Self {
             lead_time: lead_time.max(0.0),
@@ -44,71 +44,42 @@ impl GuidanceLaw for LeadPursuit {
         let missile_speed = missile.state.speed();
 
         if missile_speed < 1e-6 {
-            // No speed, just accelerate toward current target position
             let range_vec = target.state.position - missile.state.position;
-            let range = norm_simd(&range_vec);
+            let range = range_vec.norm();
             if range < 1e-6 {
                 return Vector3::zeros();
             }
             return (range_vec / range) * missile.max_acceleration;
         }
 
-        // Calculate intercept point using vector triangle method
         let range_vec = target.state.position - missile.state.position;
-        let range = norm_simd(&range_vec);
+        let range = range_vec.norm();
 
         if range < 1e-6 {
             return Vector3::zeros();
         }
 
-        let vt = &target.state.velocity;
-        let vt_sq = vt.norm_squared();
-        let vm_sq = missile_speed * missile_speed;
+        // Closing speed (positive when approaching)
+        let closing_speed = calculate_closing_speed(
+            &missile.state.position,
+            &missile.state.velocity,
+            &target.state.position,
+            &target.state.velocity,
+        );
 
-        let a = vt_sq - vm_sq;
-        let b = 2.0 * dot_simd(&range_vec, vt);
-        let c = range * range;
-
-        let mut intercept_point = target.state.position + vt * self.lead_time;
-
-        let discriminant = b * b - 4.0 * a * c;
-
-        if discriminant >= 0.0 && a.abs() > 1e-6 {
-            let sqrt_disc = discriminant.sqrt();
-            let t1 = (-b + sqrt_disc) / (2.0 * a);
-            let t2 = (-b - sqrt_disc) / (2.0 * a);
-
-            // Choose positive, smaller time
-            let t_intercept = if t1 > 0.0 && t2 > 0.0 {
-                t1.min(t2)
-            } else if t1 > 0.0 {
-                t1
-            } else if t2 > 0.0 {
-                t2
-            } else {
-                self.lead_time
-            };
-
-            let t_clamped = t_intercept.min(self.lead_time * 2.0).max(0.1);
-            intercept_point = target.state.position + vt * t_clamped;
-        } else if a.abs() <= 1e-6 && b.abs() > 1e-6 {
-            let t_intercept = -c / b;
-            if t_intercept > 0.0 {
-                let t_clamped = t_intercept.min(self.lead_time * 2.0);
-                intercept_point = target.state.position + vt * t_clamped;
-            }
-        }
-
-        // PURSUIT LOGIC TO INTERCEPT POINT
-        let aim_vec = intercept_point - missile.state.position;
-        let aim_range = norm_simd(&aim_vec);
-
-        // Damping factor to reduce aggressiveness at close range
-        let damping = if aim_range < 1000.0 {
-            (aim_range / 1000.0).clamp(0.1, 1.0)
+        // Time to intercept
+        let t_intercept = if closing_speed > 1.0 {
+            (range / closing_speed).clamp(0.1, self.lead_time * 2.0)
         } else {
-            1.0
+            self.lead_time
         };
+
+        // Predicted target position at intercept time
+        let intercept_point = target.state.position + target.state.velocity * t_intercept;
+
+        // Aim at predicted intercept point
+        let aim_vec = intercept_point - missile.state.position;
+        let aim_range = aim_vec.norm();
 
         if aim_range < 1e-6 {
             return Vector3::zeros();
@@ -118,21 +89,19 @@ impl GuidanceLaw for LeadPursuit {
         let velocity_unit = missile.state.velocity / missile_speed;
 
         // Compute lateral (perpendicular) component needed to turn toward intercept
-        let dot_product = dot_simd(&velocity_unit, &aim_unit);
+        let dot_product = velocity_unit.dot(&aim_unit);
         let lateral_component = aim_unit - velocity_unit * dot_product;
 
-        let lateral_norm = norm_simd(&lateral_component);
+        let lateral_norm = lateral_component.norm();
         if lateral_norm < 1e-12 {
-            // Already aligned with intercept point
             return aim_unit * missile.max_acceleration;
         }
 
-        let lateral_unit = normalize_simd(&lateral_component);
+        let lateral_unit = lateral_component.normalize();
 
         // Acceleration magnitude based on required turn rate
-        let accel_magnitude = missile.navigation_constant * missile_speed * lateral_norm * damping;
+        let accel_magnitude = missile.navigation_constant * missile_speed * lateral_norm;
 
-        // Clamp to max acceleration
         lateral_unit * accel_magnitude.min(missile.max_acceleration)
     }
 

@@ -1,49 +1,50 @@
-use crate::core::{dot_simd, norm_simd, normalize_simd};
 use crate::entity::{Missile, Target};
 use crate::guidance::traits::GuidanceLaw;
 use nalgebra::Vector3;
 
-/// Very Basic Pure Pursuit (Chase) Guidance
+/// Pure Pursuit (PP) Guidance
+///
+/// Simplest guidance strategy: point velocity vector directly at the target.
+/// No lead angle — always chases the target's current position.
+///
+/// `a_c = lateral_unit * a_max * lateral_norm`
 pub struct PurePursuit;
 
 impl GuidanceLaw for PurePursuit {
     #[inline]
     fn calculate_acceleration(&self, missile: &Missile, target: &Target) -> Vector3<f64> {
         let range_vec = target.state.position - missile.state.position;
-        let range = norm_simd(&range_vec);
+        let range = range_vec.norm();
 
         if range < 1e-6 {
             return Vector3::zeros();
         }
 
-        // Direction to target
+        // Direction to target (LOS unit vector)
         let range_unit = range_vec / range;
 
-        // Current velocity direction
         let missile_speed = missile.state.speed();
 
         if missile_speed < 1e-6 {
-            // just accelerate toward target
             return range_unit * missile.max_acceleration;
         }
 
         let velocity_unit = missile.state.velocity / missile_speed;
 
-        // Compute required turn direction
-        // Perpendicular component of desired direction
-        let dot_product = dot_simd(&velocity_unit, &range_unit);
+        // Perpendicular component of desired direction relative to velocity
+        let dot_product = velocity_unit.dot(&range_unit);
         let lateral_component = range_unit - velocity_unit * dot_product;
 
-        let lateral_norm = norm_simd(&lateral_component);
+        let lateral_norm = lateral_component.norm();
         if lateral_norm < 1e-12 {
-            // Already aligned
+            // Already aligned with target
             return range_unit * missile.max_acceleration;
         }
 
-        let lateral_unit = normalize_simd(&lateral_component);
+        let lateral_unit = lateral_component.normalize();
 
-        // Acceleration perpendicular to velocity
-        let accel_magnitude = missile.navigation_constant * missile_speed * lateral_norm;
+        // Acceleration perpendicular to velocity, scaled by lateral error
+        let accel_magnitude = missile.max_acceleration * lateral_norm;
 
         lateral_unit * accel_magnitude.min(missile.max_acceleration)
     }

@@ -1,89 +1,112 @@
-use crate::core::{calculate_closing_speed_simd, dot_simd, norm_simd, normalize_simd};
 use crate::entity::{Missile, Target};
 use crate::guidance::traits::GuidanceLaw;
 use nalgebra::Vector3;
 
-/// Deviated Pursuit (DP) - Enhanced pursuit with velocity matching and adaptive aggression
+/// Deviated Pursuit (DP) — blend of Pure Pursuit and Lead Pursuit.
 ///
-/// Improvements over [`Pure Pursuit`](crate::guidance::PurePursuit):
-/// - Short-term velocity vector alignment
-/// - Range-dependent aggression (more aggressive at close range)
-/// - Closing speed awareness for energy management
-pub struct DeviatedPursuit;
+/// Combination of PP with LP:
+/// aim = α * PP_direction + (1 - α) * LP_direction
+/// - α = 1.0 → Pure Pursuit
+/// - α = 0.0 → Lead Pursuit
+/// - α = 0.5 → Equal blend
+pub struct DeviatedPursuit {
+    /// Blend factor between PP and LP (0.0 = full LP, 1.0 = full PP).
+    alpha: f64,
+    /// Lead time in seconds for the LP component.
+    lead_time: f64,
+}
+
+impl DeviatedPursuit {
+    /// Creates a DP with the given blend factor and lead time.
+    /// * `alpha` — Blend factor in [0, 1]. 1.0 = pure pursuit, 0.0 = lead pursuit.
+    /// * `lead_time` — Lead time for LP component in seconds.
+    pub fn new(alpha: f64, lead_time: f64) -> Self {
+        Self {
+            alpha: alpha.clamp(0.0, 1.0),
+            lead_time: lead_time.max(0.0),
+        }
+    }
+}
+
+impl Default for DeviatedPursuit {
+    fn default() -> Self {
+        Self::new(0.5, 1.0)
+    }
+}
 
 impl GuidanceLaw for DeviatedPursuit {
     #[inline]
     fn calculate_acceleration(&self, missile: &Missile, target: &Target) -> Vector3<f64> {
+        let missile_speed = missile.state.speed();
+
+        if missile_speed < 1e-6 {
+            let range_vec = target.state.position - missile.state.position;
+            let range = range_vec.norm();
+            if range < 1e-6 {
+                return Vector3::zeros();
+            }
+            return (range_vec / range) * missile.max_acceleration;
+        }
+
         let range_vec = target.state.position - missile.state.position;
-        let range = norm_simd(&range_vec);
+        let range = range_vec.norm();
 
         if range < 1e-6 {
             return Vector3::zeros();
         }
 
-        let missile_speed = missile.state.speed();
-
-        if missile_speed < 1e-6 {
-            // No speed, just accelerate toward target
-            return (range_vec / range) * missile.max_acceleration;
-        }
-
-        let range_unit = range_vec / range;
         let velocity_unit = missile.state.velocity / missile_speed;
 
-        // CLOSING SPEED AWARENESS
-        let closing_speed = calculate_closing_speed_simd(
+        // Pure Pursuit direction
+        let pp_dir = range_vec / range;
+
+        // Lead Pursuit direction (simple linear intercept prediction)
+        let closing_speed = crate::core::calculate_closing_speed(
             &missile.state.position,
             &missile.state.velocity,
             &target.state.position,
             &target.state.velocity,
         );
 
-        // Adaptive aggression based on closing performance
-        let closing_factor = if closing_speed > 0.0 {
-            let relative_closing = closing_speed / missile_speed;
-            if relative_closing < 0.2 {
-                // Very slow closing - be more aggressive
-                1.6
-            } else if relative_closing < 0.5 {
-                // Moderate closing - slightly more aggressive
-                1.3
-            } else {
-                // Good closing rate - normal aggression
-                1.0
-            }
+        let t_intercept = if closing_speed > 1.0 {
+            (range / closing_speed).clamp(0.1, self.lead_time * 2.0)
         } else {
-            // Negative closing - maximum aggression
-            2.0
+            self.lead_time
         };
 
-        // RANGE-BASED DAMPING (like LP, prevent oscillation)
-        let range_damping = if range < 1000.0 {
-            (range / 1000.0).clamp(0.3, 1.0)
+        let intercept_point = target.state.position + target.state.velocity * t_intercept;
+        let lp_vec = intercept_point - missile.state.position;
+        let lp_range = lp_vec.norm();
+
+        let lp_dir = if lp_range > 1e-6 {
+            lp_vec / lp_range
         } else {
-            1.0
+            pp_dir
         };
 
-        // TURN RATE CALCULATION
-        let dot_product = dot_simd(&velocity_unit, &range_unit);
-        let lateral_component = range_unit - velocity_unit * dot_product;
+        // blend alpha * PP + (1-alpha) * LP
+        let blended_dir = pp_dir * self.alpha + lp_dir * (1.0 - self.alpha);
+        let blended_norm = blended_dir.norm();
 
-        let lateral_norm = norm_simd(&lateral_component);
-        if lateral_norm < 1e-12 {
-            // Already aligned, accelerate forward
-            return range_unit * missile.max_acceleration;
+        if blended_norm < 1e-12 {
+            return pp_dir * missile.max_acceleration;
         }
 
-        let lateral_unit = normalize_simd(&lateral_component);
+        let aim_unit = blended_dir / blended_norm;
 
-        // Apply closing-based aggression and range damping
-        let accel_magnitude = missile.navigation_constant
-            * missile_speed
-            * lateral_norm
-            * closing_factor
-            * range_damping;
+        // lateral component perpendicular to velocity
+        let dot_product = velocity_unit.dot(&aim_unit);
+        let lateral_component = aim_unit - velocity_unit * dot_product;
 
-        // Clamp to max acceleration
+        let lateral_norm = lateral_component.norm();
+        if lateral_norm < 1e-12 {
+            return aim_unit * missile.max_acceleration;
+        }
+
+        let lateral_unit = lateral_component.normalize();
+
+        let accel_magnitude = missile.navigation_constant * missile_speed * lateral_norm;
+
         lateral_unit * accel_magnitude.min(missile.max_acceleration)
     }
 

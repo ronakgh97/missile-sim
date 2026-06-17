@@ -14,12 +14,13 @@ pub fn calculate_los_rate(
     target_vel: &Vector3<f64>,
 ) -> Vector3<f64> {
     let range_vec = target_pos - missile_pos;
-    let range = range_vec.norm();
+    let range = range_vec.norm_squared();
 
-    if range < 1e-6 {
+    if range < 1e-12 {
         return Vector3::zeros();
     }
-
+    
+    let range = range.sqrt();
     let relative_velocity = target_vel - missile_vel;
 
     let inv_range = 1.0 / range;

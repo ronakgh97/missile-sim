@@ -1,26 +1,31 @@
-use crate::core::{
-    calculate_closing_speed_simd, calculate_los_rate_simd, dot_simd, norm_simd, normalize_simd,
-};
+use crate::core::{calculate_closing_speed, calculate_los_rate};
 use crate::entity::{Missile, Target};
 use crate::guidance::traits::GuidanceLaw;
 use nalgebra::Vector3;
 
-/// Simplified version of [`Proportional Navigation`](crate::guidance::PureProportionalNavigation) that does not include closing speed compensation.
-/// In [`PPN`](crate::guidance::PureProportionalNavigation), the acceleration command is always perpendicular to the missile's velocity and directed toward the line-of-sight (LOS) rate vector.
-/// This makes [`PPN`](crate::guidance::PureProportionalNavigation) less effective against maneuvering targets compared to standard PN, but it can be useful for certain scenarios where simplicity is desired.
+/// True Proportional Navigation (TPN)
+///
+/// Uses closing speed instead of missile speed for the acceleration command.
+/// The acceleration is perpendicular to the missile's velocity and directed
+/// toward the line-of-sight (LOS) rate vector.
+///
+/// `a_c = N * V_c * λ̇`
+///
+/// TPN is more effective against maneuvering targets than PPN because it
+/// accounts for the actual rate of range closure.
 pub struct TrueProportionalNavigation;
 
 impl GuidanceLaw for TrueProportionalNavigation {
     #[inline]
     fn calculate_acceleration(&self, missile: &Missile, target: &Target) -> Vector3<f64> {
-        let los_rate_vector = calculate_los_rate_simd(
+        let los_rate_vector = calculate_los_rate(
             &missile.state.position,
             &missile.state.velocity,
             &target.state.position,
             &target.state.velocity,
         );
 
-        let closing_speed = calculate_closing_speed_simd(
+        let closing_speed = calculate_closing_speed(
             &missile.state.position,
             &missile.state.velocity,
             &target.state.position,
@@ -33,19 +38,20 @@ impl GuidanceLaw for TrueProportionalNavigation {
             closing_speed.abs().max(1.0)
         };
 
-        let los_rate_magnitude = norm_simd(&los_rate_vector);
+        let los_rate_magnitude = los_rate_vector.norm();
 
         if los_rate_magnitude < 1e-12 {
             return Vector3::zeros();
         }
 
-        // TPN: uses closing speed instead of missile speed
-        let velocity_unit = normalize_simd(&missile.state.velocity);
-        let los_rate_unit = normalize_simd(&los_rate_vector);
+        // TPN; uses closing speed instead of missile speed
+        let velocity_unit = missile.state.velocity.normalize();
+        let los_rate_unit = los_rate_vector.normalize();
 
-        let dot_product = dot_simd(&velocity_unit, &los_rate_unit);
+        // LOS is perpendicular to the missile's velocity.
+        let dot_product = velocity_unit.dot(&los_rate_unit);
         let accel_direction = los_rate_unit - velocity_unit * dot_product;
-        let accel_direction = normalize_simd(&accel_direction);
+        let accel_direction = accel_direction.normalize();
 
         let acceleration_magnitude =
             missile.navigation_constant * safe_closing_speed * los_rate_magnitude;
