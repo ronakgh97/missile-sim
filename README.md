@@ -1,5 +1,3 @@
-> NOTE: Ongoing holy refactor!!!
-
 ## Missile-Sim
 
 A missile guidance system simulator supporting multiple guidance laws in 3D combat scenarios.

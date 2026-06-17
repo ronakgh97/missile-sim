@@ -1,8 +1,8 @@
-# MATHS BEHIND HOMING MISSILE GUIDANCE LAWS
+# MATHS BEHIND HOMING MISSILE
 
-SCENARIO: Missile (M) Pursuing Target (T) in 3D Space
 
 ```shell
+Missile (M) Pursuing Target (T) in 3D Space
 
                                     T [target]
                                    /│\     V_t (target velocity)
@@ -373,8 +373,8 @@ For each timestep t:
        a_actual = clamp(a_c, a_max)
        
     5. Update missile state:
-       V_m ← V_m + a_actual × Δt
        X_m ← X_m + V_m × Δt
+       V_m ← V_m + a_actual × Δt
        
     6. Update target state:
        X_t ← X_t + V_t × Δt

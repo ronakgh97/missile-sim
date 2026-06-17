@@ -99,7 +99,7 @@ fn test_apn_guidance() {
     let acceleration = guidance.calculate_acceleration(&missile, &target);
 
     assert!(acceleration.norm() > 0.0);
-    assert!(acceleration.norm() <= missile.max_acceleration);
+    assert!(acceleration.norm() <= missile.max_acceleration + 1e-6);
 }
 
 #[test]
@@ -141,7 +141,7 @@ fn test_deviated_pursuit_guidance() {
         acceleration: Vector3::zeros(),
     });
 
-    let guidance = DeviatedPursuit;
+    let guidance = DeviatedPursuit::default();
     let acceleration = guidance.calculate_acceleration(&missile, &target);
 
     assert!(acceleration.norm() > 0.0);

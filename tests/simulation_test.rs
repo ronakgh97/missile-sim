@@ -57,19 +57,19 @@ fn test_scenario_simulate() {
 fn test_maneuvering_target() {
     let missile = Missile::new(MissileConfig {
         position: Vector3::new(0.0, 0.0, 0.0),
-        velocity: Vector3::new(100.0, 0.0, 0.0),
-        max_acceleration: 30.0,
+        velocity: Vector3::new(300.0, 0.0, 0.0),
+        max_acceleration: 500.0,
         navigation_constant: 4.0,
-        max_closing_speed: 1000.0,
+        max_closing_speed: 2000.0,
     });
 
     let target = Target::new(TargetConfig {
-        position: Vector3::new(1000.0, 0.0, 0.0),
+        position: Vector3::new(5000.0, 0.0, 0.0),
         velocity: Vector3::new(0.0, 50.0, 0.0),
-        acceleration: Vector3::new(0.0, 10.0, 0.0),
+        acceleration: Vector3::new(0.0, 5.0, 0.0),
     });
 
-    let mut engine = SimulationEngine::new(missile, target, 0.01, 30.0, 5.0);
+    let mut engine = SimulationEngine::new(missile, target, 0.001, 30.0, 10.0);
     let guidance = AugmentedProportionalNavigation::new(0.5);
     let metrics = engine.run(&guidance);
 

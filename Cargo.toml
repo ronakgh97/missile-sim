@@ -1,7 +1,15 @@
 [package]
 name = "missile-sim"
-version = "0.1.0"
+version = "1.0.0-beta.2"
 edition = "2024"
+authors = ["ronakgh {ronakgh97@gmail.com}"]
+description = "Light-weight zero-copy E2E Single Producer Multiple Consumer network cluster library."
+license = "MIT"
+repository = "https://github.com/ronakgh97/missile-sim"
+readme = "README.md"
+categories = ["aerospace", "simulation", "game-development", "science"]
+keywords = ["missile", "simulation", "aerospace", "game-development", "science"]
+
 
 [lib]
 name = "missile_sim"
@@ -22,14 +30,14 @@ debug = true
 incremental = true
 
 [dependencies]
-nalgebra = { version = "0.34.2", features = ["serde-serialize"] }
+nalgebra = { version = "0.35.0", features = ["serde-serialize"] }
 serde = { version = "1.0.228", features = ["derive"] }
 anyhow = "1.0.102"
-wide = "1.2.0"
+# wide = "1.5.0"
 
 [dev-dependencies]
-rayon = "1.11.0"
-rand = "0.10.0"
-csv = "1.4.0"
+rayon = "1.12.0"
+rand = "0.10.1"
 colored = "3.1.1"
 plotters = "0.3.7"
+# csv = "1.4.0"
