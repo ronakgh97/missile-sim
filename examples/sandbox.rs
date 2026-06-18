@@ -1,16 +1,19 @@
 //! This example demonstrates how to run a large number of simulations with different guidance laws and random scenarios,
 //! and then save the results to a CSV file for further analysis. It uses parallel processing to speed up the simulations
+
 use colored::Colorize;
 use missile_sim::prelude::*;
 use rand::prelude::*;
 use rayon::iter::ParallelIterator;
 use rayon::prelude::IntoParallelIterator;
+use std::collections::HashMap;
 use std::f64::consts::TAU;
 use std::fs::File;
 use std::io::Write;
 use std::path::PathBuf;
 use std::sync::atomic::AtomicUsize;
 use std::sync::{Arc, LazyLock, Mutex};
+use std::time::Instant;
 
 struct SummaryRecord {
     scenario_name: Arc<String>,
@@ -26,15 +29,16 @@ static GLOBAL_RECORD: LazyLock<Arc<Mutex<Vec<SummaryRecord>>>> =
 static COUNTER: LazyLock<AtomicUsize> = LazyLock::new(|| AtomicUsize::new(0));
 
 fn main() -> anyhow::Result<()> {
-    let each_run = 1000;
+    let each_run = 10000;
 
+    let start_time = Instant::now();
     let laws: Vec<(&str, Box<dyn GuidanceLaw>)> = vec![
         ("PPN", Box::new(PureProportionalNavigation)),
         ("TPN", Box::new(TrueProportionalNavigation)),
         ("APN", Box::new(AugmentedProportionalNavigation::new(1.256))),
         ("PP", Box::new(PurePursuit)),
         ("DP", Box::new(DeviatedPursuit::default())),
-        ("LP", Box::new(LeadPursuit::new(1.255))),
+        ("LP", Box::new(LeadPursuit::new(1.256))),
     ];
 
     let random_scene: Vec<Scenario> = (0..each_run)
@@ -79,7 +83,7 @@ fn main() -> anyhow::Result<()> {
         }
     });
 
-    let file_name = format!("Summary_{}.csv", each_run);
+    let file_name = format!("Metrics_{}.csv", each_run);
     let file_path = PathBuf::from(file_name);
 
     let mut file = File::create(&file_path)?;
@@ -101,7 +105,99 @@ fn main() -> anyhow::Result<()> {
         )?;
     }
 
-    println!("Results saved to {}", file_path.display());
+    println!(
+        "CSV saved to {}, Time elapsed: {:?}",
+        file_path.display(),
+        start_time.elapsed()
+    );
+
+    let mut summary: HashMap<&str, usize> = HashMap::with_capacity(laws.len());
+    for record in all_records.iter() {
+        if record.hit == 1 {
+            *summary.entry(record.guidance_law).or_insert(0) += 1;
+        }
+    }
+
+    for (law, hits) in &summary {
+        let hit_rate = (*hits as f64 / each_run as f64) * 100.0;
+
+        println!("- {}: {:.1}% hit rate ({} hits)", law, hit_rate, hits);
+    }
+
+    plot_guidance_summary(
+        &summary,
+        each_run as usize,
+        &PathBuf::from(format!("./assets/Summary_{}.png", each_run)),
+    )?;
+
+    Ok(())
+}
+
+fn plot_guidance_summary(
+    summary: &HashMap<&str, usize>,
+    each_run: usize,
+    file_path: &PathBuf,
+) -> anyhow::Result<()> {
+    use plotters::prelude::*;
+
+    let root = BitMapBackend::new(file_path, (1800, 1200)).into_drawing_area();
+
+    root.fill(&BLACK)?;
+
+    let laws = ["PPN", "TPN", "APN", "PP", "DP", "LP"];
+
+    let max_hits = summary.values().copied().max().unwrap_or(100);
+
+    let mut chart = ChartBuilder::on(&root)
+        .caption(
+            "Guidance Law Performance Comparison",
+            ("0xProto Nerd Font", 28).into_font().color(&WHITE),
+        )
+        .margin(30)
+        .x_label_area_size(50)
+        .y_label_area_size(60)
+        .build_cartesian_2d(0..laws.len(), 0..(max_hits + 100))?;
+
+    chart
+        .configure_mesh()
+        .disable_x_mesh()
+        .bold_line_style(RGBColor(50, 50, 50))
+        .light_line_style(RGBColor(30, 30, 30))
+        .label_style(("0xProto Nerd Font", 18).into_font().color(&WHITE))
+        .axis_desc_style(("0xProto Nerd Font", 20).into_font().color(&WHITE))
+        .x_desc("Guidance Law")
+        .y_desc("Successful Hits")
+        .x_labels(laws.len())
+        .x_label_formatter(&|x| {
+            if *x < laws.len() {
+                laws[*x].to_string()
+            } else {
+                "".to_string()
+            }
+        })
+        .draw()?;
+
+    let colors = [RED, BLUE, GREEN, CYAN, MAGENTA, YELLOW];
+
+    chart.draw_series(laws.iter().enumerate().map(|(idx, law)| {
+        let hits = *summary.get(law).unwrap_or(&0);
+        Rectangle::new([(idx, 0), (idx + 1, hits)], colors[idx].filled())
+    }))?;
+
+    // text above bars
+    chart.draw_series(laws.iter().enumerate().map(|(idx, law)| {
+        let hits = *summary.get(law).unwrap_or(&0);
+        let pct = hits as f64 / each_run as f64 * 100.0;
+
+        Text::new(
+            format!("{:.1}%", pct),
+            (idx, hits + 20),
+            ("0xProto Nerd Font", 16).into_font().color(&WHITE),
+        )
+    }))?;
+
+    root.present()?;
+
     Ok(())
 }
 

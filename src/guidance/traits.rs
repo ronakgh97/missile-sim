@@ -6,15 +6,12 @@ use nalgebra::Vector3;
 /// Implement this trait to create custom guidance algorithms.
 /// The library provides six built-in implementations:
 ///
-/// - [`PureProportionalNavigation`] (PPN)
-/// - [`TrueProportionalNavigation`] (TPN)
-/// - [`AugmentedProportionalNavigation`] (APN)
-/// - [`PurePursuit`] (PP)
-/// - [`DeviatedPursuit`] (DP)
-/// - [`LeadPursuit`] (LP)
-///
-/// # Example
-///
+/// - [`crate::guidance::PureProportionalNavigation`] (PPN)
+/// - [`crate::guidance::TrueProportionalNavigation`] (TPN)
+/// - [`crate::guidance::AugmentedProportionalNavigation`] (APN)
+/// - [`crate::guidance::PurePursuit`] (PP)
+/// - [`crate::guidance::DeviatedPursuit`] (DP)
+/// - [`crate::guidance::LeadPursuit`] (LP)
 /// ```
 /// use missile_sim::prelude::*;
 /// use nalgebra::Vector3;
@@ -33,13 +30,8 @@ use nalgebra::Vector3;
 /// ```
 pub trait GuidanceLaw: Send + Sync {
     /// Computes the acceleration command for the missile.
-    ///
-    /// # Arguments
-    ///
     /// * `missile` — Current missile state and parameters.
     /// * `target` — Current target state and parameters.
-    ///
-    /// # Returns
     ///
     /// A 3D acceleration vector (m/s²). The simulation engine will clamp
     /// this to the missile's `max_acceleration`.

@@ -5,10 +5,10 @@ use crate::simulation::metrics::SimulationMetrics;
 
 /// The simulation engine that runs the missile-target engagement loop.
 ///
-/// Use [`SimulationEngine::new`] to create an engine, then call [`run`] for
-/// a complete simulation or [`step`] for manual control (useful for game loops).
+/// Use [`SimulationEngine::new`] to create an engine, then call [`SimulationEngine::run`] for
+/// a complete simulation or [`SimulationEngine::step`] for manual control (useful for game loops).
 ///
-/// For most use cases, prefer [`Scenario::simulate`] which handles engine
+/// For most use cases, prefer [`crate::simulation::Scenario::simulate`] which handles engine
 /// creation internally.
 pub struct SimulationEngine {
     /// The missile entity.

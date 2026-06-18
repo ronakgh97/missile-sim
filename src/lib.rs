@@ -51,8 +51,8 @@
 //!
 //! ### Custom Guidance Laws
 //!
-//! Implement the [`GuidanceLaw`] trait and pass your type to [`Scenario::simulate`] or
-//! [`SimulationEngine::run`]:
+//! Implement the [`crate::guidance::GuidanceLaw`] trait and pass your type to [`crate::simulation::Scenario::simulate`] or
+//! [`crate::simulation::SimulationEngine::run`]:
 //!
 //! ```no_run
 //! use missile_sim::prelude::*;
@@ -75,29 +75,15 @@
 //!
 //! ### Performance Comparison
 //!
+//! These runs showcase the performance & accuracy of the six guidance laws against a maneuvering target over 1000, 5000, and 10000 simulations.
+//! #### 1000
 //! ![1000-run](https://raw.githubusercontent.com/ronakgh97/missile-sim/refs/heads/master/assets/Summary_1000.png)
-//! - PPN: 38.9% hit rate (389 hits)
-//! - TPN: 31.0% hit rate (310 hits)
-//! - APN: 51.9% hit rate (519 hits)
-//! - PP: 73.8% hit rate (738 hits)
-//! - DP: 67.0% hit rate (670 hits)
-//! - LP: 85.6% hit rate (856 hits)
 //!
+//! #### 5000
 //! ![5000-run](https://raw.githubusercontent.com/ronakgh97/missile-sim/refs/heads/master/assets/Summary_5000.png)
-//! - PPN: 40.0% hit rate (2000 hits)
-//! - TPN: 32.1% hit rate (1606 hits)
-//! - APN: 52.9% hit rate (2648 hits)
-//! - PP: 74.8% hit rate (3741 hits)
-//! - DP: 68.2% hit rate (3411 hits)
-//! - LP: 85.6% hit rate (4279 hits)
 //!
-//! ![10000-run](https://raw.githubusercontent.com/ronakgh97/missile-sim/refs/heads/master/assets/Summary_5000.png)
-//! - PPN: 40.3% hit rate (4031 hits)
-//! - TPN: 32.2% hit rate (3217 hits)
-//! - APN: 54.1% hit rate (5412 hits)
-//! - PP: 74.7% hit rate (7473 hits)
-//! - DP: 68.4% hit rate (6835 hits)
-//! - LP: 85.5% hit rate (8552 hits)
+//! #### 10000
+//! ![10000-run](https://raw.githubusercontent.com/ronakgh97/missile-sim/refs/heads/master/assets/Summary_10000.png)
 
 pub mod core;
 pub mod entity;

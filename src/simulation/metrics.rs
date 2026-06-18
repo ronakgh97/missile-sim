@@ -1,7 +1,8 @@
 use nalgebra::Vector3;
 use serde::{Deserialize, Serialize};
 
-/// Time-series metrics collected during a simulation run. (Can be de/serialized for logging or analysis)
+/// Time-series metrics collected during a simulation run.
+/// (Can be S/Derialize for logging or analysis using `serde`)
 ///
 /// All trajectory and state data is stored as parallel vectors indexed by timestep.
 /// After simulation completes, `hit` and `miss_distance` contain the final result.
@@ -57,7 +58,7 @@ impl SimulationMetrics {
     }
 
     /// Records the state and metrics for a single timestep.
-    /// This is called internally by the `SimulationEngine` at each step.
+    /// This is called internally by the [`crate::simulation::SimulationEngine::run()`] at each step.
     #[inline]
     #[allow(clippy::too_many_arguments)]
     pub fn record(

@@ -207,8 +207,8 @@ fn demo_game_loop_style() {
         acceleration: Vector3::zeros(),
     };
 
-    let mut engine = SimulationEngine::new(missile, target, 0.01, 20.0, 5.0);
     let mut metrics = SimulationMetrics::init(256);
+    let mut engine = SimulationEngine::new(missile, target, 0.01, 20.0, 5.0);
 
     let guidance = PureProportionalNavigation;
 

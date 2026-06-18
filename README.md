@@ -34,6 +34,7 @@ This simulator implements six different guidance laws:
 
 ```rust
 use missile_sim::prelude::*;
+
 fn main() {
     let scenario = Scenario::builder("Head-on-intercept")
         .missile(Missile {
@@ -76,29 +77,29 @@ These plot showcase the trajectories between `'dumb'` homing missiles and `'smar
 
 ### Performance Metrics
 
-![Hit Statistics](assets/Summary_1000.png)
+![Hit Stats](assets/Summary_1000.png)
 
-- PPN: 38.9% hit rate (389 hits)
-- TPN: 31.0% hit rate (310 hits)
-- APN: 51.9% hit rate (519 hits)
-- PP: 73.8% hit rate (738 hits)
-- DP: 67.0% hit rate (670 hits)
-- LP: 85.6% hit rate (856 hits)
+- PP: 14.2% hit rate (142 hits)
+- TPN: 63.6% hit rate (636 hits)
+- APN: 88.0% hit rate (880 hits)
+- PPN: 66.7% hit rate (667 hits)
+- DP: 71.8% hit rate (718 hits)
+- LP: 86.2% hit rate (862 hits)
 
-![Hit_Statistics](assets/Summary_5000.png)
+![Hit_Stats](assets/Summary_5000.png)
 
-- PPN: 40.0% hit rate (2000 hits)
-- TPN: 32.1% hit rate (1606 hits)
-- APN: 52.9% hit rate (2648 hits)
-- PP: 74.8% hit rate (3741 hits)
-- DP: 68.2% hit rate (3411 hits)
-- LP: 85.6% hit rate (4279 hits)
+- TPN: 61.7% hit rate (3087 hits)
+- PPN: 65.1% hit rate (3255 hits)
+- PP: 14.1% hit rate (704 hits)
+- APN: 86.9% hit rate (4344 hits)
+- DP: 70.8% hit rate (3538 hits)
+- LP: 85.2% hit rate (4260 hits)
 
-![Hit_Statistics](assets/Summary_10000.png)
+![Hit_Stats](assets/Summary_10000.png)
 
-- PPN: 40.3% hit rate (4031 hits)
-- TPN: 32.2% hit rate (3217 hits)
-- APN: 54.1% hit rate (5412 hits)
-- PP: 74.7% hit rate (7473 hits)
-- DP: 68.4% hit rate (6835 hits)
-- LP: 85.5% hit rate (8552 hits)
+- APN: 86.8% hit rate (8676 hits)
+- TPN: 61.4% hit rate (6139 hits)
+- PP: 14.1% hit rate (1407 hits)
+- PPN: 64.9% hit rate (6490 hits)
+- LP: 85.1% hit rate (8514 hits)
+- DP: 70.5% hit rate (7047 hits)

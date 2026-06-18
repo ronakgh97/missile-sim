@@ -1,6 +1,6 @@
 [package]
 name = "missile-sim"
-version = "1.0.0-beta.3"
+version = "1.0.0-beta.4"
 edition = "2024"
 authors = ["ronakgh {ronakgh97@gmail.com}"]
 description = "Missile-sim is a high-performance missile simulation library. It provides accurate physics modeling, real-time performance, and a flexible API for simulating various types of guidance laws."
