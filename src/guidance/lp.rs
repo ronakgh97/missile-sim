@@ -1,6 +1,6 @@
 use crate::core::calculate_closing_speed;
 use crate::entity::{Missile, Target};
-use crate::guidance::traits::GuidanceLaw;
+use crate::guidance::GuidanceLaw;
 use nalgebra::Vector3;
 
 /// Lead Pursuit (LP) guidance.

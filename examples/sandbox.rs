@@ -1,3 +1,5 @@
+//! This example demonstrates how to run a large number of simulations with different guidance laws and random scenarios,
+//! and then save the results to a CSV file for further analysis. It uses parallel processing to speed up the simulations
 use colored::Colorize;
 use missile_sim::prelude::*;
 use rand::prelude::*;
@@ -24,15 +26,15 @@ static GLOBAL_RECORD: LazyLock<Arc<Mutex<Vec<SummaryRecord>>>> =
 static COUNTER: LazyLock<AtomicUsize> = LazyLock::new(|| AtomicUsize::new(0));
 
 fn main() -> anyhow::Result<()> {
-    let each_run = 1500;
+    let each_run = 1000;
 
     let laws: Vec<(&str, Box<dyn GuidanceLaw>)> = vec![
         ("PPN", Box::new(PureProportionalNavigation)),
         ("TPN", Box::new(TrueProportionalNavigation)),
-        ("APN", Box::new(AugmentedProportionalNavigation::new(1.225))),
+        ("APN", Box::new(AugmentedProportionalNavigation::new(1.256))),
         ("PP", Box::new(PurePursuit)),
-        ("DP", Box::new(DeviatedPursuit)),
-        ("LP", Box::new(LeadPursuit::new(1.25))),
+        ("DP", Box::new(DeviatedPursuit::default())),
+        ("LP", Box::new(LeadPursuit::new(1.255))),
     ];
 
     let random_scene: Vec<Scenario> = (0..each_run)
@@ -103,7 +105,7 @@ fn main() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[inline]
+#[inline(always)]
 fn generate_random_scenario(seed: u64, rng: &mut StdRng) -> anyhow::Result<Scenario> {
     let m_pos = Vector3::new(
         rng.random_range(-2000.0..2000.0),
@@ -149,16 +151,20 @@ fn generate_random_scenario(seed: u64, rng: &mut StdRng) -> anyhow::Result<Scena
     let nav_const = rng.random_range(3.0..8.0);
 
     ScenarioBuilder::new(&format!("random_{}", seed))
-        .missile_config(MissileConfig {
-            position: m_pos,
-            velocity: m_vel,
+        .missile(Missile {
+            state: State3D {
+                position: m_pos,
+                velocity: m_vel,
+            },
             max_acceleration: m_acc,
             navigation_constant: nav_const,
             max_closing_speed: 8000.0,
         })
-        .target_config(TargetConfig {
-            position: t_pos,
-            velocity: t_vel,
+        .target(Target {
+            state: State3D {
+                position: t_pos,
+                velocity: t_vel,
+            },
             acceleration: t_acc,
         })
         .dt(0.0001)

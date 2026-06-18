@@ -1,4 +1,4 @@
-use crate::entity::{Missile, MissileConfig, Target, TargetConfig};
+use crate::entity::{Missile, Target};
 use crate::guidance::GuidanceLaw;
 use crate::simulation::engine::SimulationEngine;
 use crate::simulation::metrics::SimulationMetrics;
@@ -13,16 +13,20 @@ use crate::simulation::metrics::SimulationMetrics;
 ///
 /// fn main() {
 ///   let scenario = Scenario::builder("intercept")
-///      .missile_config(MissileConfig {
-///         position: Vector3::new(0.0, 0.0, 0.0),
-///         velocity: Vector3::new(100.0, 0.0, 0.0),
+///      .missile(Missile {
+///         state: State3D {
+///            position: Vector3::new(0.0, 0.0, 0.0),
+///            velocity: Vector3::new(100.0, 0.0, 0.0),
+///         },
 ///         max_acceleration: 30.0,
 ///         navigation_constant: 4.0,
 ///         max_closing_speed: 1000.0,
 ///      })
-///      .target_config(TargetConfig {
-///         position: Vector3::new(1000.0, 0.0, 0.0),
-///         velocity: Vector3::new(0.0, 0.0, 0.0),
+///      .target(Target {
+///         state: State3D {
+///            position: Vector3::new(1000.0, 0.0, 0.0),
+///            velocity: Vector3::new(0.0, 0.0, 0.0),
+///         },
 ///         acceleration: Vector3::zeros(),
 ///      })
 ///      .build()
@@ -36,10 +40,10 @@ use crate::simulation::metrics::SimulationMetrics;
 pub struct Scenario {
     /// Human-readable name for this scenario.
     pub name: String,
-    /// Missile configuration.
-    pub missile_config: MissileConfig,
-    /// Target configuration.
-    pub target_config: TargetConfig,
+    /// Missile entity.
+    pub missile: Missile,
+    /// Target entity.
+    pub target: Target,
     /// Simulation timestep in seconds. Smaller values give more accuracy
     /// at the cost of performance. Typical values: 0.0001–0.01.
     pub dt: f64,
@@ -57,12 +61,9 @@ impl Scenario {
     /// `guidance` — Any type implementing [`GuidanceLaw`], such as one of the
     ///  built-in laws (e.g., `PureProportionalNavigation`) or a custom implementation.
     pub fn simulate(&self, guidance: &dyn GuidanceLaw) -> SimulationMetrics {
-        let missile = Missile::new(self.missile_config.clone());
-        let target = Target::new(self.target_config.clone());
-
         let mut engine = SimulationEngine {
-            missile,
-            target,
+            missile: self.missile.clone(),
+            target: self.target.clone(),
             time: 0.0,
             dt: self.dt,
             max_time: self.total_time,
@@ -84,8 +85,8 @@ impl Scenario {
 /// * hit_threshold - `5.0`
 pub struct ScenarioBuilder {
     name: String,
-    missile_config: Option<MissileConfig>,
-    target_config: Option<TargetConfig>,
+    missile: Option<Missile>,
+    target: Option<Target>,
     dt: f64,
     total_time: f64,
     hit_threshold: f64,
@@ -96,23 +97,23 @@ impl ScenarioBuilder {
     pub fn new(name: &str) -> Self {
         Self {
             name: name.to_string(),
-            missile_config: None,
-            target_config: None,
+            missile: None,
+            target: None,
             dt: 0.01,
             total_time: 60.0,
             hit_threshold: 5.0,
         }
     }
 
-    /// Sets the missile configuration.
-    pub fn missile_config(mut self, config: MissileConfig) -> Self {
-        self.missile_config = Some(config);
+    /// Sets the missile.
+    pub fn missile(mut self, missile: Missile) -> Self {
+        self.missile = Some(missile);
         self
     }
 
-    /// Sets the target configuration.
-    pub fn target_config(mut self, config: TargetConfig) -> Self {
-        self.target_config = Some(config);
+    /// Sets the target.
+    pub fn target(mut self, target: Target) -> Self {
+        self.target = Some(target);
         self
     }
 
@@ -134,16 +135,16 @@ impl ScenarioBuilder {
         self
     }
 
-    /// Builds the scenario. Returns an error if missile or target config is missing.
+    /// Builds the scenario. Returns an error if missile or target is missing.
     pub fn build(self) -> anyhow::Result<Scenario> {
         Ok(Scenario {
             name: self.name,
-            missile_config: self
-                .missile_config
-                .ok_or_else(|| anyhow::anyhow!("missile_config is required"))?,
-            target_config: self
-                .target_config
-                .ok_or_else(|| anyhow::anyhow!("target_config is required"))?,
+            missile: self
+                .missile
+                .ok_or_else(|| anyhow::anyhow!("missile is required"))?,
+            target: self
+                .target
+                .ok_or_else(|| anyhow::anyhow!("target is required"))?,
             dt: self.dt,
             total_time: self.total_time,
             hit_threshold: self.hit_threshold,

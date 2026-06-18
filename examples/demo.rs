@@ -1,7 +1,4 @@
-//! Comprehensive demo of missile-sim library features.
-//!
-//! Run with: `cargo run --example demo`
-
+//! Comprehensive demo of library features.
 use missile_sim::prelude::*;
 use nalgebra::Vector3;
 
@@ -19,16 +16,20 @@ fn demo_basic_scenario() {
     println!("Basic Scenario");
 
     let scenario = Scenario::builder("Head-on-intercept")
-        .missile_config(MissileConfig {
-            position: Vector3::new(0.0, 0.0, 0.0),
-            velocity: Vector3::new(100.0, 0.0, 0.0),
+        .missile(Missile {
+            state: State3D {
+                position: Vector3::new(0.0, 0.0, 0.0),
+                velocity: Vector3::new(100.0, 0.0, 0.0),
+            },
             max_acceleration: 30.0,
             navigation_constant: 4.0,
             max_closing_speed: 1000.0,
         })
-        .target_config(TargetConfig {
-            position: Vector3::new(1000.0, 0.0, 0.0),
-            velocity: Vector3::new(0.0, 0.0, 0.0),
+        .target(Target {
+            state: State3D {
+                position: Vector3::new(1000.0, 0.0, 0.0),
+                velocity: Vector3::new(0.0, 0.0, 0.0),
+            },
             acceleration: Vector3::zeros(),
         })
         .dt(0.01)
@@ -51,23 +52,27 @@ fn demo_all_guidance_laws() {
     let guidance_laws: Vec<(&str, Box<dyn GuidanceLaw>)> = vec![
         ("PPN", Box::new(PureProportionalNavigation)),
         ("TPN", Box::new(TrueProportionalNavigation)),
-        ("APN", Box::new(AugmentedProportionalNavigation::new(0.575))),
+        ("APN", Box::new(AugmentedProportionalNavigation::new(1.115))),
         ("PP", Box::new(PurePursuit)),
-        ("DP", Box::new(DeviatedPursuit)),
-        ("LP", Box::new(LeadPursuit::new(1.05))),
+        ("DP", Box::new(DeviatedPursuit::default())),
+        ("LP", Box::new(LeadPursuit::new(1.155))),
     ];
 
-    let scenario = Scenario::builder("comparison")
-        .missile_config(MissileConfig {
-            position: Vector3::new(0.0, 0.0, 0.0),
-            velocity: Vector3::new(200.0, 100.0, 0.0),
+    let scenario = Scenario::builder("Scenario")
+        .missile(Missile {
+            state: State3D {
+                position: Vector3::new(0.0, 0.0, 0.0),
+                velocity: Vector3::new(200.0, 100.0, 0.0),
+            },
             max_acceleration: 50.0,
             navigation_constant: 4.0,
             max_closing_speed: 2000.0,
         })
-        .target_config(TargetConfig {
-            position: Vector3::new(5000.0, 2000.0, 0.0),
-            velocity: Vector3::new(-50.0, 0.0, 0.0),
+        .target(Target {
+            state: State3D {
+                position: Vector3::new(5000.0, 2000.0, 0.0),
+                velocity: Vector3::new(-50.0, 0.0, 0.0),
+            },
             acceleration: Vector3::zeros(),
         })
         .dt(0.00001)
@@ -100,16 +105,20 @@ fn demo_maneuvering_target() {
     println!("Maneuvering Target");
 
     let scenario = Scenario::builder("evasive-target")
-        .missile_config(MissileConfig {
-            position: Vector3::new(0.0, 0.0, 0.0),
-            velocity: Vector3::new(150.0, 50.0, 0.0),
+        .missile(Missile {
+            state: State3D {
+                position: Vector3::new(0.0, 0.0, 0.0),
+                velocity: Vector3::new(150.0, 50.0, 0.0),
+            },
             max_acceleration: 80.0,
             navigation_constant: 5.0,
             max_closing_speed: 2000.0,
         })
-        .target_config(TargetConfig {
-            position: Vector3::new(3000.0, 0.0, 0.0),
-            velocity: Vector3::new(0.0, 80.0, 0.0),
+        .target(Target {
+            state: State3D {
+                position: Vector3::new(3000.0, 0.0, 0.0),
+                velocity: Vector3::new(0.0, 80.0, 0.0),
+            },
             acceleration: Vector3::new(0.0, 15.0, 0.0),
         })
         .dt(0.001)
@@ -149,16 +158,20 @@ fn demo_custom_guidance() {
     }
 
     let scenario = Scenario::builder("custom-law")
-        .missile_config(MissileConfig {
-            position: Vector3::new(0.0, 0.0, 0.0),
-            velocity: Vector3::new(100.0, 0.0, 0.0),
+        .missile(Missile {
+            state: State3D {
+                position: Vector3::new(0.0, 0.0, 0.0),
+                velocity: Vector3::new(100.0, 0.0, 0.0),
+            },
             max_acceleration: 30.0,
             navigation_constant: 4.0,
             max_closing_speed: 1000.0,
         })
-        .target_config(TargetConfig {
-            position: Vector3::new(1000.0, 0.0, 0.0),
-            velocity: Vector3::new(0.0, 0.0, 0.0),
+        .target(Target {
+            state: State3D {
+                position: Vector3::new(1000.0, 0.0, 0.0),
+                velocity: Vector3::new(0.0, 0.0, 0.0),
+            },
             acceleration: Vector3::zeros(),
         })
         .dt(0.01)
@@ -176,22 +189,26 @@ fn demo_custom_guidance() {
 fn demo_game_loop_style() {
     println!("Game Loop Style _step-by-step_");
 
-    let missile = Missile::new(MissileConfig {
-        position: Vector3::new(0.0, 0.0, 0.0),
-        velocity: Vector3::new(100.0, 50.0, 0.0),
+    let missile = Missile {
+        state: State3D {
+            position: Vector3::new(0.0, 0.0, 0.0),
+            velocity: Vector3::new(100.0, 50.0, 0.0),
+        },
         max_acceleration: 30.0,
         navigation_constant: 4.0,
         max_closing_speed: 1000.0,
-    });
+    };
 
-    let target = Target::new(TargetConfig {
-        position: Vector3::new(500.0, 500.0, 0.0),
-        velocity: Vector3::new(-20.0, 0.0, 0.0),
+    let target = Target {
+        state: State3D {
+            position: Vector3::new(500.0, 500.0, 0.0),
+            velocity: Vector3::new(-20.0, 0.0, 0.0),
+        },
         acceleration: Vector3::zeros(),
-    });
+    };
 
     let mut engine = SimulationEngine::new(missile, target, 0.01, 20.0, 5.0);
-    let mut metrics = SimulationMetrics::new();
+    let mut metrics = SimulationMetrics::init(256);
 
     let guidance = PureProportionalNavigation;
 
@@ -237,16 +254,20 @@ fn demo_2d_usage() {
     println!("2D Usage (Z = 0)");
 
     let scenario = Scenario::builder("2d-intercept")
-        .missile_config(MissileConfig {
-            position: Vector3::new(0.0, 0.0, 0.0),
-            velocity: Vector3::new(100.0, 50.0, 0.0),
+        .missile(Missile {
+            state: State3D {
+                position: Vector3::new(0.0, 0.0, 0.0),
+                velocity: Vector3::new(100.0, 50.0, 0.0),
+            },
             max_acceleration: 30.0,
             navigation_constant: 4.0,
             max_closing_speed: 1000.0,
         })
-        .target_config(TargetConfig {
-            position: Vector3::new(2000.0, 500.0, 0.0),
-            velocity: Vector3::new(-30.0, 0.0, 0.0),
+        .target(Target {
+            state: State3D {
+                position: Vector3::new(2000.0, 500.0, 0.0),
+                velocity: Vector3::new(-30.0, 0.0, 0.0),
+            },
             acceleration: Vector3::zeros(),
         })
         .dt(0.01)

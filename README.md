@@ -36,23 +36,27 @@ This simulator implements six different guidance laws:
 use missile_sim::prelude::*;
 fn main() {
     let scenario = Scenario::builder("Head-on-intercept")
-        .missile_config(MissileConfig {
-            position: Vector3::new(0.0, 0.0, 0.0),
-            velocity: Vector3::new(100.0, 0.0, 0.0),
+        .missile(Missile {
+            state: State3D {
+                position: Vector3::new(0.0, 0.0, 0.0),
+                velocity: Vector3::new(100.0, 0.0, 0.0),
+            },
             max_acceleration: 30.0,
             navigation_constant: 3.0,
             max_closing_speed: 1000.0,
         })
-        .target_config(TargetConfig {
-            position: Vector3::new(1000.0, 0.0, 0.0),
-            velocity: Vector3::new(0.0, 0.0, 0.0),
+        .target(Target {
+            state: State3D {
+                position: Vector3::new(1000.0, 0.0, 0.0),
+                velocity: Vector3::new(0.0, 0.0, 0.0),
+            },
             acceleration: Vector3::zeros(),
         })
         .dt(0.01)
         .total_time(20.0)
         .hit_threshold(5.0)
         .build()
-        .unwrap();
+        .expect("Failed to build scenario");
 
     let metrics = scenario.simulate(&PureProportionalNavigation);
     println!("Scenario: {}", scenario.name);
@@ -62,94 +66,15 @@ fn main() {
 }
 ```
 
-Checkout the `examples` directory for more detailed example scenarios and performance comparisons across guidance laws.
-
-### Example Scenarios
-
-```rust
-async fn scene_0() -> Result<Scenario> {
-    ScenarioBuilder::new("Perpendicular-Intercept")
-        .missile_config(MissileConfig {
-            position: Vector3::new(500.0, 0.0, 0.0),
-            velocity: Vector3::new(0.0, 1250.0, 0.0),
-            max_acceleration: 1500.0,
-            navigation_constant: 5.0,
-            max_closing_speed: 8000.0,
-        })
-        .target_config(TargetConfig {
-            position: Vector3::new(-5000.0, 2000.0, 0.0),
-            velocity: Vector3::new(1200.0, 0.0, 0.0),
-        })
-        .dt(0.00001)
-        .total_time(60.0)
-        .hit_threshold(10.0)
-        .build()
-}
-
-async fn scene_1() -> Result<Scenario> {
-    ScenarioBuilder::new("Ground-Launch-Strike")
-        .missile_config(MissileConfig {
-            position: Vector3::new(0.0, 0.0, 0.0),
-            velocity: Vector3::new(500.0, 1000.0, 800.0),
-            max_acceleration: 2500.0,
-            navigation_constant: 8.0,
-            max_closing_speed: 8500.0,
-        })
-        .target_config(TargetConfig {
-            position: Vector3::new(5000.0, 0.0, 0.0),
-            velocity: Vector3::new(100.0, 0.0, 1000.0),
-        })
-        .dt(0.00001)
-        .total_time(60.0)
-        .hit_threshold(10.0)
-        .build()
-}
-
-async fn scene_2() -> Result<Scenario> {
-    ScenarioBuilder::new("Air-Strike")
-        .missile_config(MissileConfig {
-            position: Vector3::new(-5000.0, 5000.0, 0.0),
-            velocity: Vector3::new(2555.0, -1250.0, 0.0),
-            max_acceleration: 4500.0,
-            navigation_constant: 6.0,
-            max_closing_speed: 8550.0,
-        })
-        .target_config(TargetConfig {
-            position: Vector3::new(5000.0, 100.0, 0.0),
-            velocity: Vector3::new(750.0, 0.0, 0.0),
-        })
-        .dt(0.00001)
-        .total_time(60.0)
-        .hit_threshold(10.0)
-        .build()
-}
-
-async fn scene_3() -> Result<Scenario> {
-    ScenarioBuilder::new("Side-Intercept")
-        .missile_config(MissileConfig {
-            position: Vector3::new(500.0, 0.0, 0.0),
-            velocity: Vector3::new(0.0, 1250.0, 0.0), // Steep dive
-            max_acceleration: 5500.0,
-            navigation_constant: 8.0,
-            max_closing_speed: 8000.0,
-        })
-        .target_config(TargetConfig {
-            position: Vector3::new(-5000.0, 2000.0, 5000.0),
-            velocity: Vector3::new(1200.0, 0.0, 0.0),
-        })
-        .dt(0.00001)
-        .total_time(60.0)
-        .hit_threshold(10.0)
-        .build()
-}
-```
+Checkout [examples](./examples) for more detailed example scenarios and performance comparisons across guidance laws.
 
 ### Scenarios plot
 
-![Demo_1](assets/PPN_trajectory.png)
-![Demo_2](assets/TPN_trajectory.png)
+These plot showcase the trajectories between `'dumb'` homing missiles and `'smart'` guidance missile
+![TPN_plot](assets/Plot_TPN.png)
+![PP_plot](assets/Plot_PP.png)
 
-### Summary Metrics
+### Performance Metrics
 
 ![Hit Statistics](assets/Summary_1000.png)
 

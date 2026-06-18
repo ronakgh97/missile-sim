@@ -3,19 +3,23 @@ use nalgebra::Vector3;
 
 #[test]
 fn test_ppn_guidance() {
-    let missile = Missile::new(MissileConfig {
-        position: Vector3::new(0.0, 0.0, 0.0),
-        velocity: Vector3::new(100.0, 0.0, 0.0),
+    let missile = Missile {
+        state: State3D {
+            position: Vector3::new(0.0, 0.0, 0.0),
+            velocity: Vector3::new(100.0, 0.0, 0.0),
+        },
         max_acceleration: 30.0,
         navigation_constant: 3.0,
         max_closing_speed: 1000.0,
-    });
+    };
 
-    let target = Target::new(TargetConfig {
-        position: Vector3::new(1000.0, 1000.0, 0.0),
-        velocity: Vector3::new(0.0, 0.0, 0.0),
+    let target = Target {
+        state: State3D {
+            position: Vector3::new(1000.0, 1000.0, 0.0),
+            velocity: Vector3::new(0.0, 0.0, 0.0),
+        },
         acceleration: Vector3::zeros(),
-    });
+    };
 
     let guidance = PureProportionalNavigation;
     let acceleration = guidance.calculate_acceleration(&missile, &target);
@@ -38,19 +42,23 @@ fn test_ppn_guidance() {
 
 #[test]
 fn test_tpn_guidance() {
-    let missile = Missile::new(MissileConfig {
-        position: Vector3::new(0.0, 0.0, 0.0),
-        velocity: Vector3::new(100.0, 0.0, 0.0),
+    let missile = Missile {
+        state: State3D {
+            position: Vector3::new(0.0, 0.0, 0.0),
+            velocity: Vector3::new(100.0, 0.0, 0.0),
+        },
         max_acceleration: 30.0,
         navigation_constant: 3.0,
         max_closing_speed: 1000.0,
-    });
+    };
 
-    let target = Target::new(TargetConfig {
-        position: Vector3::new(1000.0, 1000.0, 0.0),
-        velocity: Vector3::new(0.0, 0.0, 0.0),
+    let target = Target {
+        state: State3D {
+            position: Vector3::new(1000.0, 1000.0, 0.0),
+            velocity: Vector3::new(0.0, 0.0, 0.0),
+        },
         acceleration: Vector3::zeros(),
-    });
+    };
 
     let guidance = TrueProportionalNavigation;
     let acceleration = guidance.calculate_acceleration(&missile, &target);
@@ -81,19 +89,23 @@ fn test_tpn_guidance() {
 
 #[test]
 fn test_apn_guidance() {
-    let missile = Missile::new(MissileConfig {
-        position: Vector3::new(0.0, 0.0, 0.0),
-        velocity: Vector3::new(100.0, 0.0, 0.0),
+    let missile = Missile {
+        state: State3D {
+            position: Vector3::new(0.0, 0.0, 0.0),
+            velocity: Vector3::new(100.0, 0.0, 0.0),
+        },
         max_acceleration: 30.0,
         navigation_constant: 3.0,
         max_closing_speed: 1000.0,
-    });
+    };
 
-    let target = Target::new(TargetConfig {
-        position: Vector3::new(1000.0, 1000.0, 0.0),
-        velocity: Vector3::new(0.0, 0.0, 0.0),
+    let target = Target {
+        state: State3D {
+            position: Vector3::new(1000.0, 1000.0, 0.0),
+            velocity: Vector3::new(0.0, 0.0, 0.0),
+        },
         acceleration: Vector3::zeros(),
-    });
+    };
 
     let guidance = AugmentedProportionalNavigation::new(0.5);
     let acceleration = guidance.calculate_acceleration(&missile, &target);
@@ -104,19 +116,23 @@ fn test_apn_guidance() {
 
 #[test]
 fn test_pure_pursuit_guidance() {
-    let missile = Missile::new(MissileConfig {
-        position: Vector3::new(0.0, 0.0, 0.0),
-        velocity: Vector3::new(100.0, 0.0, 0.0),
+    let missile = Missile {
+        state: State3D {
+            position: Vector3::new(0.0, 0.0, 0.0),
+            velocity: Vector3::new(100.0, 0.0, 0.0),
+        },
         max_acceleration: 30.0,
         navigation_constant: 3.0,
         max_closing_speed: 1000.0,
-    });
+    };
 
-    let target = Target::new(TargetConfig {
-        position: Vector3::new(1000.0, 1000.0, 0.0),
-        velocity: Vector3::new(0.0, 0.0, 0.0),
+    let target = Target {
+        state: State3D {
+            position: Vector3::new(1000.0, 1000.0, 0.0),
+            velocity: Vector3::new(0.0, 0.0, 0.0),
+        },
         acceleration: Vector3::zeros(),
-    });
+    };
 
     let guidance = PurePursuit;
     let acceleration = guidance.calculate_acceleration(&missile, &target);
@@ -127,19 +143,23 @@ fn test_pure_pursuit_guidance() {
 
 #[test]
 fn test_deviated_pursuit_guidance() {
-    let missile = Missile::new(MissileConfig {
-        position: Vector3::new(0.0, 0.0, 0.0),
-        velocity: Vector3::new(100.0, 0.0, 0.0),
+    let missile = Missile {
+        state: State3D {
+            position: Vector3::new(0.0, 0.0, 0.0),
+            velocity: Vector3::new(100.0, 0.0, 0.0),
+        },
         max_acceleration: 30.0,
         navigation_constant: 3.0,
         max_closing_speed: 1000.0,
-    });
+    };
 
-    let target = Target::new(TargetConfig {
-        position: Vector3::new(1000.0, 1000.0, 0.0),
-        velocity: Vector3::new(0.0, 0.0, 0.0),
+    let target = Target {
+        state: State3D {
+            position: Vector3::new(1000.0, 1000.0, 0.0),
+            velocity: Vector3::new(0.0, 0.0, 0.0),
+        },
         acceleration: Vector3::zeros(),
-    });
+    };
 
     let guidance = DeviatedPursuit::default();
     let acceleration = guidance.calculate_acceleration(&missile, &target);
@@ -150,19 +170,23 @@ fn test_deviated_pursuit_guidance() {
 
 #[test]
 fn test_lead_pursuit_guidance() {
-    let missile = Missile::new(MissileConfig {
-        position: Vector3::new(0.0, 0.0, 0.0),
-        velocity: Vector3::new(100.0, 0.0, 0.0),
+    let missile = Missile {
+        state: State3D {
+            position: Vector3::new(0.0, 0.0, 0.0),
+            velocity: Vector3::new(100.0, 0.0, 0.0),
+        },
         max_acceleration: 30.0,
         navigation_constant: 3.0,
         max_closing_speed: 1000.0,
-    });
+    };
 
-    let target = Target::new(TargetConfig {
-        position: Vector3::new(1000.0, 1000.0, 0.0),
-        velocity: Vector3::new(0.0, 0.0, 0.0),
+    let target = Target {
+        state: State3D {
+            position: Vector3::new(1000.0, 1000.0, 0.0),
+            velocity: Vector3::new(0.0, 0.0, 0.0),
+        },
         acceleration: Vector3::zeros(),
-    });
+    };
 
     let guidance = LeadPursuit::new(1.0);
     let acceleration = guidance.calculate_acceleration(&missile, &target);

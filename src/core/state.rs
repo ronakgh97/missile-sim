@@ -1,10 +1,11 @@
 use nalgebra::Vector3;
+use serde::{Deserialize, Serialize};
 
 /// The kinematic state of an entity in 3D space.
-/// 
+///
 /// Holds position and velocity vectors. Updated each simulation step
 /// by applying acceleration and integrating forward in time.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct State3D {
     /// Current position in world coordinates.
     pub position: Vector3<f64>,

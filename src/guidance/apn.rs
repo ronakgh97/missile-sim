@@ -1,5 +1,5 @@
 use crate::entity::{Missile, Target};
-use crate::guidance::traits::GuidanceLaw;
+use crate::guidance::GuidanceLaw;
 use nalgebra::Vector3;
 
 /// Augmented Proportional Navigation (APN) with Zero Effort Miss (ZEM) compensation.

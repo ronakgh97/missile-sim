@@ -4,7 +4,7 @@ mod lp;
 mod pp;
 mod ppn;
 mod tpn;
-pub mod traits;
+mod traits;
 
 pub use apn::AugmentedProportionalNavigation;
 pub use dp::DeviatedPursuit;

@@ -1,7 +1,7 @@
 use nalgebra::Vector3;
 
 /// Calculates the line-of-sight (LOS) rate vector.
-/// 
+///
 /// The LOS rate is the angular velocity of the line connecting the missile to the target.
 /// It is computed as the tangential component of relative velocity divided by range.
 /// Returns a 3D vector representing the LOS rate. The magnitude is the angular rate (rad/s), and
@@ -19,7 +19,7 @@ pub fn calculate_los_rate(
     if range < 1e-12 {
         return Vector3::zeros();
     }
-    
+
     let range = range.sqrt();
     let relative_velocity = target_vel - missile_vel;
 

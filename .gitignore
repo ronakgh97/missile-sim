@@ -1,6 +1,5 @@
 /target
 /plots
 /data
-.venv/
 .idea
 Summary_*.csv
