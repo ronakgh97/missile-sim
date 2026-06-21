@@ -1,10 +1,12 @@
 use anyhow::Result;
+use colored::Colorize;
 use missile_sim::prelude::*;
 use plotters::coord::cartesian::Cartesian3d;
 use plotters::coord::types::RangedCoordf64;
 use plotters::prelude::*;
+use rayon::iter::ParallelIterator;
+use rayon::prelude::IntoParallelRefIterator;
 use std::path::{Path, PathBuf};
-
 // TODO; fix the plotter
 
 fn main() -> Result<()> {
@@ -25,7 +27,7 @@ fn main() -> Result<()> {
             },
             acceleration: Vector3::new(0.0, 25.0, 0.0),
         })
-        .dt(0.01)
+        .dt(0.0001)
         .total_time(35.0)
         .hit_threshold(10.0)
         .build()?;
@@ -47,7 +49,7 @@ fn main() -> Result<()> {
             },
             acceleration: Vector3::zeros(),
         })
-        .dt(0.005)
+        .dt(0.0001)
         .total_time(20.0)
         .hit_threshold(3.0)
         .build()?;
@@ -69,7 +71,7 @@ fn main() -> Result<()> {
             },
             acceleration: Vector3::new(0.0, 10.0, -5.0),
         })
-        .dt(0.01)
+        .dt(0.0001)
         .total_time(45.0)
         .hit_threshold(8.0)
         .build()?;
@@ -91,7 +93,7 @@ fn main() -> Result<()> {
             },
             acceleration: Vector3::zeros(),
         })
-        .dt(0.002)
+        .dt(0.0001)
         .total_time(30.0)
         .hit_threshold(5.0)
         .build()?;
@@ -113,7 +115,7 @@ fn main() -> Result<()> {
             },
             acceleration: Vector3::new(0.0, 2.0, 0.0),
         })
-        .dt(0.01)
+        .dt(0.0001)
         .total_time(18.0)
         .hit_threshold(2.0)
         .build()?;
@@ -135,7 +137,7 @@ fn main() -> Result<()> {
             },
             acceleration: Vector3::new(0.0, 30.0, 10.0),
         })
-        .dt(0.001)
+        .dt(0.0001)
         .total_time(40.0)
         .hit_threshold(15.0)
         .build()?;
@@ -151,30 +153,46 @@ fn main() -> Result<()> {
 
     let mut title = vec![];
     let mut metrics = vec![];
-    for s in &scene {
-        let m = s.simulate(&TrueProportionalNavigation);
-        println!(
-            "Scene: {} Hit: {}",
-            s.name,
-            if m.hit { "YES" } else { "NO" }
-        );
+
+    let results: Vec<_> = scene
+        .par_iter()
+        .map(|s| {
+            let m = s.simulate(&TrueProportionalNavigation);
+            println!(
+                "Scene: {} Hit: {}",
+                s.name,
+                if m.hit { "YES".green() } else { "NO".red() }
+            );
+            (s.name.as_str(), m)
+        })
+        .collect();
+
+    for (name, m) in results {
+        title.push(name);
         metrics.push(m);
-        title.push(s.name.as_str());
     }
 
     plot_projection(&metrics, PathBuf::from("./assets/Plot_TPN.png"), &title)?;
 
-    let mut title = vec![];
-    let mut metrics = vec![];
-    for s in &scene {
-        let m = s.simulate(&PurePursuit);
-        println!(
-            "Scene: {} Hit: {}",
-            s.name,
-            if m.hit { "YES" } else { "NO" }
-        );
+    title.clear();
+    metrics.clear();
+
+    let results: Vec<_> = scene
+        .par_iter()
+        .map(|s| {
+            let m = s.simulate(&PurePursuit);
+            println!(
+                "Scene: {} Hit: {}",
+                s.name,
+                if m.hit { "YES".green() } else { "NO".red() }
+            );
+            (s.name.as_str(), m)
+        })
+        .collect();
+
+    for (name, m) in results {
+        title.push(name);
         metrics.push(m);
-        title.push(s.name.as_str());
     }
 
     plot_projection(&metrics, PathBuf::from("./assets/Plot_PP.png"), &title)?;

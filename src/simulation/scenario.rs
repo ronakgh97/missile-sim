@@ -44,8 +44,9 @@ pub struct Scenario {
     pub missile: Missile,
     /// Target entity.
     pub target: Target,
-    /// Simulation timestep in seconds. Smaller values give more accuracy
-    /// at the cost of performance. Typical values: 0.0001–0.01.
+    /// Simulation timestep in seconds.
+    /// Smaller values give more accuracy at the cost of performance.
+    /// Typical values: 0.0001–0.01.
     pub dt: f64,
     /// Maximum simulation duration in seconds.
     pub total_time: f64,

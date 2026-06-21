@@ -13,8 +13,9 @@ pub struct Missile {
     pub state: State3D,
     /// Maximum acceleration magnitude (m/s²).
     pub max_acceleration: f64,
-    /// Navigation constant (N'), typical values are 3–5.
-    /// This affects the aggressiveness of the missile's maneuvers. Higher values lead to more aggressive turns.
+    /// Navigation constant (N'), typical values are 3–5. (DON'T PUT ZERO)
+    /// This affects the aggressiveness of the missile's maneuvers.
+    /// Higher values lead to more aggressive turns.
     pub navigation_constant: f64,
     /// Maximum closing speed for TPN/APN clamping.
     pub max_closing_speed: f64,
