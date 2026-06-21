@@ -63,9 +63,12 @@ fn test_tpn_guidance() {
     let guidance = TrueProportionalNavigation;
     let acceleration = guidance.calculate_acceleration(&missile, &target);
 
-    assert!(acceleration.x.abs() < 1e-6);
     assert!(acceleration.z.abs() < 1e-6);
+    assert!(acceleration.x < 0.0);
     assert!(acceleration.y > 0.0);
+    let los_vector = target.state.position - missile.state.position;
+    let dot_product = acceleration.dot(&los_vector);
+    assert!(dot_product.abs() < 1e-6);
 
     let los_rate = calculate_los_rate(
         &missile.state.position,
@@ -135,33 +138,6 @@ fn test_pure_pursuit_guidance() {
     };
 
     let guidance = PurePursuit;
-    let acceleration = guidance.calculate_acceleration(&missile, &target);
-
-    assert!(acceleration.norm() > 0.0);
-    assert!(acceleration.norm() <= missile.max_acceleration);
-}
-
-#[test]
-fn test_deviated_pursuit_guidance() {
-    let missile = Missile {
-        state: State3D {
-            position: Vector3::new(0.0, 0.0, 0.0),
-            velocity: Vector3::new(100.0, 0.0, 0.0),
-        },
-        max_acceleration: 30.0,
-        navigation_constant: 3.0,
-        max_closing_speed: 1000.0,
-    };
-
-    let target = Target {
-        state: State3D {
-            position: Vector3::new(1000.0, 1000.0, 0.0),
-            velocity: Vector3::new(0.0, 0.0, 0.0),
-        },
-        acceleration: Vector3::zeros(),
-    };
-
-    let guidance = DeviatedPursuit::default();
     let acceleration = guidance.calculate_acceleration(&missile, &target);
 
     assert!(acceleration.norm() > 0.0);

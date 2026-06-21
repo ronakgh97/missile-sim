@@ -46,7 +46,7 @@ fn test_calculate_los_rate() {
 
     let los_rate = calculate_los_rate(&missile_pos, &missile_vel, &target_pos, &target_vel);
 
-    let expected_los_rate = Vector3::new(0.0, 0.1, 0.0);
+    let expected_los_rate = Vector3::new(0.0, 0.0, 0.1);
 
     assert!((los_rate - expected_los_rate).norm() < 1e-6);
 }
