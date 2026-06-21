@@ -77,30 +77,25 @@ These plot showcase the trajectories between `'dumb'` homing missiles and `'smar
 
 ### Performance Metrics
 
-Heuristic hit performance metrics for each guidance law are summarized below,
-of 1000, 5000, and 10000 simulation runs EACH,
+Heuristic hit performance metrics for each guidance law,
 run it using `cargo bench --bench bencher -- <run_count>`
 
-![Hit Stats](assets/Summary_1000.png)
-
-- PPN: 85.7% hit rate (857 hits)
-- TPN: 57.9% hit rate (579 hits)
-- LP: 84.5% hit rate (845 hits)
-- PP: 12.6% hit rate (126 hits)
-- APN: 63.4% hit rate (634 hits)
-
-![Hit_Stats](assets/Summary_5000.png)
-
-- LP: 84.2% hit rate (4209 hits)
-- PP: 11.9% hit rate (593 hits)
-- PPN: 85.3% hit rate (4264 hits)
-- TPN: 57.1% hit rate (2856 hits)
-- APN: 61.9% hit rate (3093 hits)
-
-![Hit_Stats](assets/Summary_10000.png)
+![Stats](assets/Summary_10000.png)
 
 - LP: 83.8% hit rate (8375 hits)
+- PP: 12.3% hit rate (1233 hits)
 - PPN: 84.7% hit rate (8467 hits)
 - APN: 61.2% hit rate (6118 hits)
 - TPN: 56.6% hit rate (5661 hits)
-- PP: 12.3% hit rate (1233 hits)
+
+- PPN: 573.27 average miss distance
+- TPN: 1151.05 average miss distance
+- APN: 881.99 average miss distance
+- PP: 962.64 average miss distance
+- LP: 522.06 average miss distance
+
+- PP: 56.67 impact time
+- LP: 20.46 impact time
+- PPN: 19.59 impact time
+- APN: 27.76 impact time
+- TPN: 29.81 impact time

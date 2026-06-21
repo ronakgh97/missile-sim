@@ -4,11 +4,11 @@ use missile_sim::entity::{Missile, Target};
 use missile_sim::guidance::*;
 use nalgebra::Vector3;
 
-const HIT_THRESHOLD: f64 = 20.0;
-const MISSILE_SPEED: f64 = 200.0;
-const MISSILE_ACCEL: f64 = 400.0;
+const HIT_THRESHOLD: f64 = 15.0;
+const MISSILE_SPEED: f64 = 250.0;
+const MISSILE_ACCEL: f64 = 500.0;
 const NAV: f64 = 4.0;
-const MAX_CLOSING: f64 = 2000.0;
+const MAX_CLOSING: f64 = 2250.0;
 const TRAIL_LEN: usize = 200;
 const HIT_FREEZE: f32 = 2.0;
 const LERP: f32 = 0.07;

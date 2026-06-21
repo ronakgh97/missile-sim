@@ -4,7 +4,6 @@ use missile_sim::prelude::*;
 use rayon::iter::ParallelIterator;
 use rayon::prelude::IntoParallelRefIterator;
 use std::path::{Path, PathBuf};
-// TODO; fix the plotter
 
 fn main() -> Result<()> {
     let bvr_intercept = Scenario::builder("BVR Fighter Intercept")
@@ -154,29 +153,6 @@ fn main() -> Result<()> {
     let results: Vec<_> = scene
         .par_iter()
         .map(|s| {
-            let m = s.simulate(&TrueProportionalNavigation);
-            println!(
-                "Scene: {} Hit: {}",
-                s.name,
-                if m.hit { "YES".green() } else { "NO".red() }
-            );
-            (s.name.as_str(), m)
-        })
-        .collect();
-
-    for (name, m) in results {
-        title.push(name);
-        metrics.push(m);
-    }
-
-    plot_projection(&metrics, PathBuf::from("./assets/Plot_TPN.png"), &title)?;
-
-    title.clear();
-    metrics.clear();
-
-    let results: Vec<_> = scene
-        .par_iter()
-        .map(|s| {
             let m = s.simulate(&PurePursuit);
             println!(
                 "Scene: {} Hit: {}",
@@ -193,6 +169,52 @@ fn main() -> Result<()> {
     }
 
     plot_projection(&metrics, PathBuf::from("./assets/Plot_PP.png"), &title)?;
+
+    title.clear();
+    metrics.clear();
+
+    let results: Vec<_> = scene
+        .par_iter()
+        .map(|s| {
+            let m = s.simulate(&PureProportionalNavigation);
+            println!(
+                "Scene: {} Hit: {}",
+                s.name,
+                if m.hit { "YES".green() } else { "NO".red() }
+            );
+            (s.name.as_str(), m)
+        })
+        .collect();
+
+    for (name, m) in results {
+        title.push(name);
+        metrics.push(m);
+    }
+
+    plot_projection(&metrics, PathBuf::from("./assets/Plot_PPN.png"), &title)?;
+
+    title.clear();
+    metrics.clear();
+
+    let results: Vec<_> = scene
+        .par_iter()
+        .map(|s| {
+            let m = s.simulate(&TrueProportionalNavigation);
+            println!(
+                "Scene: {} Hit: {}",
+                s.name,
+                if m.hit { "YES".green() } else { "NO".red() }
+            );
+            (s.name.as_str(), m)
+        })
+        .collect();
+
+    for (name, m) in results {
+        title.push(name);
+        metrics.push(m);
+    }
+
+    plot_projection(&metrics, PathBuf::from("./assets/Plot_TPN.png"), &title)?;
 
     Ok(())
 }

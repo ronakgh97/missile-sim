@@ -16,7 +16,7 @@ use std::sync::atomic::AtomicUsize;
 use std::sync::{Arc, LazyLock, Mutex};
 use std::time::Instant;
 
-struct SummaryRecord {
+struct Record {
     scenario_name: Arc<String>,
     guidance_law: &'static str,
     hit: i8,
@@ -24,7 +24,7 @@ struct SummaryRecord {
     time_to_impact: f64,
 }
 
-static GLOBAL_RECORD: LazyLock<Arc<Mutex<Vec<SummaryRecord>>>> =
+static GLOBAL_RECORD: LazyLock<Arc<Mutex<Vec<Record>>>> =
     LazyLock::new(|| Arc::new(Mutex::new(Vec::new())));
 
 static COUNTER: LazyLock<AtomicUsize> = LazyLock::new(|| AtomicUsize::new(0));
@@ -58,7 +58,7 @@ fn main() -> anyhow::Result<()> {
         let shared_scenario_name = Arc::new(scenario.name.clone());
         for (law_name, law) in &laws {
             let metrics = scenario.simulate(law.as_ref());
-            let record = SummaryRecord {
+            let record = Record {
                 scenario_name: Arc::clone(&shared_scenario_name),
                 guidance_law: law_name,
                 hit: if metrics.hit { 1 } else { 0 },
@@ -117,21 +117,52 @@ fn main() -> anyhow::Result<()> {
         start_time.elapsed()
     );
 
-    let mut summary: HashMap<&str, usize> = HashMap::with_capacity(laws.len());
+    let mut hit_summary: HashMap<&str, usize> = HashMap::with_capacity(laws.len());
+    let mut miss_dist_summary: HashMap<&str, f64> = HashMap::with_capacity(laws.len());
+    let mut impact_time_summary: HashMap<&str, f64> = HashMap::with_capacity(laws.len());
+
+    // aggregate results
     for record in all_records.iter() {
         if record.hit == 1 {
-            *summary.entry(record.guidance_law).or_insert(0) += 1;
+            *hit_summary.entry(record.guidance_law).or_insert(0) += 1;
+        }
+
+        *miss_dist_summary.entry(record.guidance_law).or_insert(0.0) += record.miss_distance;
+        *impact_time_summary
+            .entry(record.guidance_law)
+            .or_insert(0.0) += record.time_to_impact;
+    }
+
+    // average them
+    for law in ["PPN", "TPN", "APN", "PP", "LP"] {
+        if let Some(v) = miss_dist_summary.get_mut(law) {
+            *v /= run_count as f64;
+        }
+
+        if let Some(v) = impact_time_summary.get_mut(law) {
+            *v /= run_count as f64;
         }
     }
 
-    for (law, hits) in &summary {
+    println!();
+    for (law, hits) in &hit_summary {
         let hit_rate = (*hits as f64 / run_count as f64) * 100.0;
 
         println!("- {}: {:.1}% hit rate ({} hits)", law, hit_rate, hits);
     }
+    println!();
+    for (law, avg_miss) in &miss_dist_summary {
+        println!("- {}: {:.2} average miss distance", law, avg_miss);
+    }
+    println!();
+    for (law, toi) in &impact_time_summary {
+        println!("- {}: {:.2} impact time", law, toi);
+    }
 
-    plot_guidance_summary(
-        &summary,
+    plot_all_metrics(
+        &hit_summary,
+        &miss_dist_summary,
+        &impact_time_summary,
         run_count as usize,
         &PathBuf::from(format!("./assets/Summary_{}.png", run_count)),
     )?;
@@ -139,23 +170,27 @@ fn main() -> anyhow::Result<()> {
     Ok(())
 }
 
-fn plot_guidance_summary(
-    summary: &HashMap<&str, usize>,
+fn plot_all_metrics(
+    hit_summary: &HashMap<&str, usize>,
+    miss_summary: &HashMap<&str, f64>,
+    impact_summary: &HashMap<&str, f64>,
     each_run: usize,
     file_path: &PathBuf,
 ) -> anyhow::Result<()> {
     use plotters::prelude::*;
 
-    let root = BitMapBackend::new(file_path, (1800, 1200)).into_drawing_area();
-
+    let root = BitMapBackend::new(file_path, (1800, 2160)).into_drawing_area();
     root.fill(&RGBColor(30, 34, 42))?;
 
     let laws = ["PPN", "TPN", "APN", "PP", "LP"];
-    let max_hits = summary.values().copied().max().unwrap_or(100);
+    let areas = root.split_evenly((3, 1));
 
-    let mut chart = ChartBuilder::on(&root)
+    // HIT GRAPH
+    let max_hits = hit_summary.values().copied().max().unwrap_or(100);
+
+    let mut chart = ChartBuilder::on(&areas[0])
         .caption(
-            "Guidance Law Performance Comparison",
+            "Guidance Law Hit Comparison",
             ("0xProto Nerd Font", 32).into_font().color(&WHITE),
         )
         .margin(40)
@@ -165,7 +200,7 @@ fn plot_guidance_summary(
 
     chart
         .configure_mesh()
-        .disable_x_mesh() // Clean look: remove vertical gridlines
+        .disable_x_mesh()
         .bold_line_style(RGBColor(60, 66, 78))
         .light_line_style(RGBColor(45, 50, 60))
         .label_style(
@@ -190,14 +225,13 @@ fn plot_guidance_summary(
     let bar_color = RGBColor(0, 180, 216);
 
     chart.draw_series(laws.iter().enumerate().map(|(idx, law)| {
-        let hits = *summary.get(law).unwrap_or(&0);
+        let hits = *hit_summary.get(law).unwrap_or(&0);
         let x = idx as f64;
         Rectangle::new([(x - 0.3, 0), (x + 0.3, hits)], bar_color.filled())
     }))?;
 
-    // Text above bars
     chart.draw_series(laws.iter().enumerate().map(|(idx, law)| {
-        let hits = *summary.get(law).unwrap_or(&0);
+        let hits = *hit_summary.get(law).unwrap_or(&0);
         let pct = hits as f64 / each_run as f64 * 100.0;
         let x = idx as f64;
 
@@ -208,10 +242,96 @@ fn plot_guidance_summary(
         )
     }))?;
 
-    root.present()?;
+    // MISS DISTANCE GRAPH
+    let max_miss = miss_summary.values().copied().fold(0.0, f64::max);
 
+    let mut chart = ChartBuilder::on(&areas[1])
+        .caption(
+            "Average Miss Distance",
+            ("0xProto Nerd Font", 32).into_font().color(&WHITE),
+        )
+        .margin(40)
+        .x_label_area_size(60)
+        .y_label_area_size(80)
+        .build_cartesian_2d(-0.5..(laws.len() as f64 - 0.5), 0.0..(max_miss + 100.0))?;
+
+    chart
+        .configure_mesh()
+        .disable_x_mesh()
+        .bold_line_style(RGBColor(60, 66, 78))
+        .light_line_style(RGBColor(45, 50, 60))
+        .label_style(
+            ("0xProto Nerd Font", 18)
+                .into_font()
+                .color(&RGBColor(180, 190, 200)),
+        )
+        .axis_desc_style(("0xProto Nerd Font", 22).into_font().color(&WHITE))
+        .x_desc("Guidance Law")
+        .y_desc("Miss Distance")
+        .x_labels(laws.len())
+        .x_label_formatter(&|x| {
+            let idx = x.round() as usize;
+            if idx < laws.len() {
+                laws[idx].to_string()
+            } else {
+                "".to_string()
+            }
+        })
+        .draw()?;
+
+    chart.draw_series(laws.iter().enumerate().map(|(idx, law)| {
+        let val = *miss_summary.get(law).unwrap_or(&0.0);
+        let x = idx as f64;
+        Rectangle::new([(x - 0.3, 0.0), (x + 0.3, val)], bar_color.filled())
+    }))?;
+
+    // TIME TO IMPACT GRAPH
+    let max_time = impact_summary.values().copied().fold(0.0, f64::max);
+
+    let mut chart = ChartBuilder::on(&areas[2])
+        .caption(
+            "Average Time To Impact",
+            ("0xProto Nerd Font", 32).into_font().color(&WHITE),
+        )
+        .margin(40)
+        .x_label_area_size(60)
+        .y_label_area_size(80)
+        .build_cartesian_2d(-0.5..(laws.len() as f64 - 0.5), 0.0..(max_time + 10.0))?;
+
+    chart
+        .configure_mesh()
+        .disable_x_mesh()
+        .bold_line_style(RGBColor(60, 66, 78))
+        .light_line_style(RGBColor(45, 50, 60))
+        .label_style(
+            ("0xProto Nerd Font", 18)
+                .into_font()
+                .color(&RGBColor(180, 190, 200)),
+        )
+        .axis_desc_style(("0xProto Nerd Font", 22).into_font().color(&WHITE))
+        .x_desc("Guidance Law")
+        .y_desc("Time To Impact")
+        .x_labels(laws.len())
+        .x_label_formatter(&|x| {
+            let idx = x.round() as usize;
+            if idx < laws.len() {
+                laws[idx].to_string()
+            } else {
+                "".to_string()
+            }
+        })
+        .draw()?;
+
+    chart.draw_series(laws.iter().enumerate().map(|(idx, law)| {
+        let val = *impact_summary.get(law).unwrap_or(&0.0);
+        let x = idx as f64;
+        Rectangle::new([(x - 0.3, 0.0), (x + 0.3, val)], bar_color.filled())
+    }))?;
+
+    root.present()?;
     Ok(())
 }
+
 #[inline(always)]
 fn generate_random_scenario(seed: u64, rng: &mut StdRng) -> anyhow::Result<Scenario> {
     let m_pos = Vector3::new(

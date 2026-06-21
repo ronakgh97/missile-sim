@@ -45,7 +45,7 @@ impl GuidanceLaw for TrueProportionalNavigation {
             &target.state.velocity,
         );
 
-        // Target is moving away and is unreachable at this point
+        // TODO: Target is moving away and is unreachable at this point
         if closing_speed <= 0.0 {
             return Vector3::zeros();
         }
