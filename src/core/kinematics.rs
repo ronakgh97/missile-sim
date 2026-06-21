@@ -13,22 +13,15 @@ pub fn calculate_los_rate(
     target_pos: &Vector3<f64>,
     target_vel: &Vector3<f64>,
 ) -> Vector3<f64> {
-    let range_vec = target_pos - missile_pos;
-    let range = range_vec.norm_squared();
+    let range_vec = target_pos - missile_pos; // R vector
+    let range_sq = range_vec.norm_squared();
 
-    if range < 1e-12 {
+    if range_sq < 1e-12 {
         return Vector3::zeros();
     }
 
-    let range = range.sqrt();
     let relative_velocity = target_vel - missile_vel;
-
-    let inv_range = 1.0 / range;
-    let radial_velocity = relative_velocity.dot(&range_vec) * inv_range;
-    let radial_component = range_vec * (radial_velocity * inv_range);
-    let tangential_velocity = relative_velocity - radial_component;
-
-    tangential_velocity * inv_range
+    range_vec.cross(&relative_velocity) / range_sq // w = (R x V_rel) / |R|^2
 }
 
 /// Calculates the closing speed between missile and target.
@@ -43,7 +36,7 @@ pub fn calculate_closing_speed(
     target_pos: &Vector3<f64>,
     target_vel: &Vector3<f64>,
 ) -> f64 {
-    let range_vec = target_pos - missile_pos;
+    let range_vec = target_pos - missile_pos; // R vector
     let range_sq = range_vec.norm_squared();
 
     if range_sq < 1e-12 {
@@ -51,6 +44,6 @@ pub fn calculate_closing_speed(
     }
 
     let inv_range = range_sq.sqrt().recip();
-    let relative_velocity = missile_vel - target_vel;
-    relative_velocity.dot(&range_vec) * inv_range
+    let relative_velocity = target_vel - missile_vel;
+    -relative_velocity.dot(&range_vec) * inv_range
 }

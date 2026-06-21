@@ -9,7 +9,7 @@ use nalgebra::Vector3;
 /// The acceleration is perpendicular to the missile's velocity and directed
 /// toward the line-of-sight (LOS) rate vector.
 ///
-/// `a_c = N * V_c * λ̇`
+/// `a_c = N * (V_c) * λ̇`
 ///
 /// TPN is more effective against maneuvering targets than PPN because it
 /// accounts for the actual rate of range closure.
@@ -18,12 +18,25 @@ pub struct TrueProportionalNavigation;
 impl GuidanceLaw for TrueProportionalNavigation {
     #[inline]
     fn calculate_acceleration(&self, missile: &Missile, target: &Target) -> Vector3<f64> {
+        let los_vector = target.state.position - missile.state.position;
+        if los_vector.norm_squared() < 1e-12 {
+            return Vector3::zeros();
+        }
+
+        let range = los_vector.norm();
+        let los_direction = los_vector / range;
+
         let los_rate_vector = calculate_los_rate(
             &missile.state.position,
             &missile.state.velocity,
             &target.state.position,
             &target.state.velocity,
         );
+
+        let los_rate_magnitude = los_rate_vector.norm();
+        if los_rate_magnitude < 1e-12 {
+            return Vector3::zeros();
+        }
 
         let closing_speed = calculate_closing_speed(
             &missile.state.position,
@@ -32,33 +45,39 @@ impl GuidanceLaw for TrueProportionalNavigation {
             &target.state.velocity,
         );
 
-        let safe_closing_speed = if missile.max_closing_speed > 1.0 {
-            closing_speed.abs().clamp(1.0, missile.max_closing_speed)
-        } else {
-            closing_speed.abs().max(1.0)
-        };
-
-        let los_rate_magnitude = los_rate_vector.norm();
-
-        if los_rate_magnitude < 1e-12 {
+        // Target is moving away and is unreachable at this point
+        if closing_speed <= 0.0 {
             return Vector3::zeros();
         }
 
-        // TPN; uses closing speed instead of missile speed
-        let velocity_unit = missile.state.velocity.normalize();
-        let los_rate_unit = los_rate_vector.normalize();
+        let direction = los_rate_vector.cross(&los_direction);
+        if direction.norm_squared() < 1e-12 {
+            return Vector3::zeros();
+        }
 
-        // LOS is perpendicular to the missile's velocity.
-        let dot_product = velocity_unit.dot(&los_rate_unit);
-        let accel_direction = los_rate_unit - velocity_unit * dot_product;
-        let accel_direction = accel_direction.normalize();
+        // TODO; add few tweaks? alter factors?
+        // - non-linear weighted closing speed
+        // - range & tweaked los dependent
+        // - cos theta alignment?
+        // - varying N const on something, damping?
 
-        let acceleration_magnitude =
-            missile.navigation_constant * safe_closing_speed * los_rate_magnitude;
+        let missile_speed = missile.state.velocity.norm();
+        if missile_speed < 1e-6 {
+            return Vector3::zeros();
+        }
 
-        let bounded_magnitude = acceleration_magnitude.min(missile.max_acceleration);
+        // TODO: squared?
+        //let vc_vm = closing_speed / missile_speed;
 
-        accel_direction * bounded_magnitude
+        // let direction = direction.normalize();
+        let accel = direction * missile.navigation_constant * closing_speed;
+        // TODO; mul los_rate_magnitude again?;
+
+        if accel.norm() > missile.max_acceleration {
+            accel * (missile.max_acceleration / accel.norm())
+        } else {
+            accel
+        }
     }
 
     fn name(&self) -> &str {

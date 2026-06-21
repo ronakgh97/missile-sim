@@ -3,8 +3,10 @@ use crate::entity::{Missile, Target};
 use crate::guidance::GuidanceLaw;
 use nalgebra::Vector3;
 
-/// Pure Proportional Navigation (PPN)
-/// Base PN without closing speed compensation, acceleration perpendicular to velocity toward LOS rate direction
+/// Pure Proportional Navigation (PPN) is base PN without closing speed compensation (V_c),
+/// acceleration is perpendicular to velocity toward LOS rate direction
+///
+/// `a_c = N * (w_LOS x V_m) where w_LOS = (R x V_rel) / |R|^2`
 pub struct PureProportionalNavigation;
 
 impl GuidanceLaw for PureProportionalNavigation {
@@ -17,28 +19,18 @@ impl GuidanceLaw for PureProportionalNavigation {
             &target.state.velocity,
         );
 
-        let missile_speed = missile.state.speed();
-        let los_rate_magnitude = los_rate_vector.norm();
-
-        if los_rate_magnitude < 1e-12 {
+        let direction = los_rate_vector.cross(&missile.state.velocity);
+        if direction.norm_squared() < 1e-12 {
             return Vector3::zeros();
         }
 
-        // PPN; acceleration perpendicular to velocity, toward LOS rate direction
-        let velocity_unit = missile.state.velocity.normalize();
-        let los_rate_unit = los_rate_vector.normalize();
+        let accel = direction * missile.navigation_constant;
 
-        // project LOS rate perpendicular to velocity
-        let dot_product = velocity_unit.dot(&los_rate_unit);
-        let accel_direction = los_rate_unit - velocity_unit * dot_product;
-        let accel_direction = accel_direction.normalize();
-
-        let acceleration_magnitude =
-            missile.navigation_constant * missile_speed * los_rate_magnitude;
-
-        let bounded_magnitude = acceleration_magnitude.min(missile.max_acceleration);
-
-        accel_direction * bounded_magnitude
+        if accel.norm() > missile.max_acceleration {
+            accel * (missile.max_acceleration / accel.norm())
+        } else {
+            accel
+        }
     }
 
     fn name(&self) -> &str {

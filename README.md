@@ -6,60 +6,60 @@ plots, performance metrics, and machine learning dataset generation.
 
 ### Guidance Laws
 
-This simulator implements six different guidance laws:
+These are some vanilla standard guidance laws:
 
-- **Pure Proportional Navigation (PPN)**: Classical guidance using line-of-sight rate
+- **Pure Proportional Navigation (PPN)**: Classical guidance using line-of-sight rate [PPN](src/guidance/ppn.rs)
     - `a_c = N × V_m × λ̇`
     - N = Navigation constant (typically 3-5)
 
-- **True Proportional Navigation (TPN)**: Accounts for closing speed in addition to LOS rate
-    - `a_c = N × V_c × λ̇`
+- **True Proportional Navigation (TPN)**: Accounts for closing speed in addition to LOS rate [TPN](src/guidance/tpn.rs)
+    - `a_c = N × (V_c) × λ̇`
     - V_c = Closing velocity
 
-- **Augmented Proportional Navigation (APN)**: Adds target acceleration compensation
-    - `a_c = N × V_c × λ̇ + (N/2) × a_t`
-    - a_t = Target acceleration (estimated)
+- **Augmented Proportional Navigation (APN)**: Adds target acceleration compensation & ZEM
+  factor [APN](src/guidance/apn.rs)
+    - `a_APN = a_PN + N * ZEM / T_const^2`
+    - ZEM = Predicted miss distance at intercept
+
+These below are made up, not standard, and are included for comparison:
 
 - **Pure Pursuit (PP)**: Aims directly at target's current position
     - Simple pursuit strategy, often inefficient against maneuvering targets
-
-- **Deviated Pursuit (DP)**: Pursuit with deviation angle correction
-    - Improved pursuit with angular correction
 
 - **Lead Pursuit (LP)**: Aims ahead of target with configurable lead factor
     - `a_c = K × (target_predicted_pos - missile_pos)`
     - K = Lead factor
 
-### Example Usage
+### Usage
 
 ```rust
 use missile_sim::prelude::*;
 
 fn main() {
-    let scenario = Scenario::builder("Head-on-intercept")
+    let bvr_intercept = Scenario::builder("BVR Fighter Intercept")
         .missile(Missile {
             state: State3D {
-                position: Vector3::new(0.0, 0.0, 0.0),
-                velocity: Vector3::new(100.0, 0.0, 0.0),
+                position: Vector3::new(0.0, 0.0, 10000.0),
+                velocity: Vector3::new(900.0, 0.0, 0.0), // Mach ~2.6
             },
-            max_acceleration: 30.0,
-            navigation_constant: 3.0,
-            max_closing_speed: 1000.0,
+            max_acceleration: 350.0, // ~35g
+            navigation_constant: 4.0,
+            max_closing_speed: 1800.0,
         })
         .target(Target {
             state: State3D {
-                position: Vector3::new(1000.0, 0.0, 0.0),
-                velocity: Vector3::new(0.0, 0.0, 0.0),
+                position: Vector3::new(25000.0, 3000.0, 10500.0),
+                velocity: Vector3::new(-320.0, 20.0, 0.0), // fighter cruise
             },
-            acceleration: Vector3::zeros(),
+            acceleration: Vector3::new(0.0, 25.0, 0.0),
         })
         .dt(0.01)
-        .total_time(20.0)
-        .hit_threshold(5.0)
+        .total_time(35.0)
+        .hit_threshold(10.0)
         .build()
-        .expect("Failed to build scenario");
+        .except("Failed to build scenario");
 
-    let metrics = scenario.simulate(&PureProportionalNavigation);
+    let metrics = scenario.simulate(&PureProportionalNavigation); // using ppn
     println!("Scenario: {}", scenario.name);
     println!("Result:   {}", metrics.console_summary());
     println!("Steps:    {}", metrics.time_history.len());
@@ -71,35 +71,36 @@ Checkout [examples](./examples) for more detailed example scenarios and performa
 
 ### Scenarios plot
 
-These plot showcase the trajectories between `'dumb'` homing missiles and `'smart'` guidance missile
+These plot showcase the trajectories between `'dumb'` homing missiles and `'smart'` guided missile
 ![TPN_plot](assets/Plot_TPN.png)
 ![PP_plot](assets/Plot_PP.png)
 
 ### Performance Metrics
 
+Heuristic hit performance metrics for each guidance law are summarized below,
+of 1000, 5000, and 10000 simulation runs EACH,
+run it using `cargo bench --bench bencher -- <run_count>`
+
 ![Hit Stats](assets/Summary_1000.png)
 
-- PP: 14.2% hit rate (142 hits)
-- TPN: 63.6% hit rate (636 hits)
-- APN: 88.0% hit rate (880 hits)
-- PPN: 66.7% hit rate (667 hits)
-- DP: 71.8% hit rate (718 hits)
-- LP: 86.2% hit rate (862 hits)
+- PPN: 85.7% hit rate (857 hits)
+- TPN: 57.9% hit rate (579 hits)
+- LP: 84.5% hit rate (845 hits)
+- PP: 12.6% hit rate (126 hits)
+- APN: 63.4% hit rate (634 hits)
 
 ![Hit_Stats](assets/Summary_5000.png)
 
-- TPN: 61.7% hit rate (3087 hits)
-- PPN: 65.1% hit rate (3255 hits)
-- PP: 14.1% hit rate (704 hits)
-- APN: 86.9% hit rate (4344 hits)
-- DP: 70.8% hit rate (3538 hits)
-- LP: 85.2% hit rate (4260 hits)
+- LP: 84.2% hit rate (4209 hits)
+- PP: 11.9% hit rate (593 hits)
+- PPN: 85.3% hit rate (4264 hits)
+- TPN: 57.1% hit rate (2856 hits)
+- APN: 61.9% hit rate (3093 hits)
 
 ![Hit_Stats](assets/Summary_10000.png)
 
-- APN: 86.8% hit rate (8676 hits)
-- TPN: 61.4% hit rate (6139 hits)
-- PP: 14.1% hit rate (1407 hits)
-- PPN: 64.9% hit rate (6490 hits)
-- LP: 85.1% hit rate (8514 hits)
-- DP: 70.5% hit rate (7047 hits)
+- LP: 83.8% hit rate (8375 hits)
+- PPN: 84.7% hit rate (8467 hits)
+- APN: 61.2% hit rate (6118 hits)
+- TPN: 56.6% hit rate (5661 hits)
+- PP: 12.3% hit rate (1233 hits)

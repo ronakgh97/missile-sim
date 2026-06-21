@@ -7,7 +7,7 @@ use nalgebra::Vector3;
 ///
 /// APN enhances PN by predicting the zero-effort miss (miss distance if no
 /// further corrections are applied) and adding a corrective term:
-/// `a_APN = a_PN + N * ZEM / t_go^2`
+/// `a_APN = (alpha)a_PN + (alpha - 1)(N * ZEM / T_const^2)`
 /// Where:
 /// - `a_PN = N * V_m * (λ̇ × V̂)` — standard PN acceleration
 /// - `ZEM = R + (V_rel * t_go) + (0.5 * a_Target * t_go)` — predicted miss at time-to-go
@@ -67,28 +67,31 @@ impl GuidanceLaw for AugmentedProportionalNavigation {
         let closing_speed =
             calculate_closing_speed(&missile_pos, &missile_vel, &target_pos, &target_vel);
 
+        let t_go = (range / closing_speed).max(0.1);
+
         // PN TERM
         let velocity_unit = missile_vel / missile_speed;
         let pn_accel = los_rate_vector.cross(&missile_vel) * missile.navigation_constant;
 
         // ZEM TERM
         let zem_accel = if closing_speed > 1e-6 {
-            let t_go = (range / closing_speed).max(0.1);
-
             let target_accel_effect = target.acceleration * (0.5 * t_go * t_go);
 
             // zem predicts the target's curve
-            let zem = range_vec + (rel_velocity * t_go) + target_accel_effect;
+            let base_zem = range_vec + (rel_velocity * t_go) + target_accel_effect;
             // TODO; use N here?
-            let zem_raw = zem * missile.navigation_constant / (t_go * t_go);
+            let zem =
+                base_zem * missile.navigation_constant / (self.time_constant * self.time_constant);
             // projected perpendicular to velocity (i.e. missiles can only produce lateral acceleration)
-            zem_raw - velocity_unit * velocity_unit.dot(&zem_raw)
+            zem - velocity_unit * velocity_unit.dot(&zem)
         } else {
             Vector3::zeros()
         };
 
         // TODO: weighting factors for PN vs ZEM? based on range, closing speed or use T etc
-        let total_accel = pn_accel + zem_accel;
+        let alpha = (-t_go / self.time_constant).exp();
+
+        let total_accel = pn_accel * (1.0 - alpha) + zem_accel * alpha;
         let accel_mag = total_accel.norm();
 
         if accel_mag > missile.max_acceleration {

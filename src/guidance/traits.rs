@@ -10,7 +10,6 @@ use nalgebra::Vector3;
 /// - [`crate::guidance::TrueProportionalNavigation`] (TPN)
 /// - [`crate::guidance::AugmentedProportionalNavigation`] (APN)
 /// - [`crate::guidance::PurePursuit`] (PP)
-/// - [`crate::guidance::DeviatedPursuit`] (DP)
 /// - [`crate::guidance::LeadPursuit`] (LP)
 /// ```
 /// use missile_sim::prelude::*;
