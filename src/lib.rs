@@ -46,13 +46,12 @@
 //! | **TPN** | True Proportional Navigation — uses closing speed instead of missile speed |
 //! | **APN** | Augmented PN with Zero Effort Miss compensation for maneuvering targets |
 //! | **PP**  | Pure Pursuit — steers directly toward current target position |
-//! | **DP**  | Deviated Pursuit — adaptive pursuit with closing-speed awareness |
 //! | **LP**  | Lead Pursuit — predicts intercept point and aims there |
 //!
 //! ### Custom Guidance Laws
 //!
-//! Implement the [`crate::guidance::GuidanceLaw`] trait and pass your type to [`crate::simulation::Scenario::simulate`] or
-//! [`crate::simulation::SimulationEngine::run`]:
+//! Implement the [`guidance::GuidanceLaw`] trait and pass your type to [`simulation::Scenario::simulate`] or
+//! [`simulation::SimulationEngine::run`]:
 //!
 //! ```no_run
 //! use missile_sim::prelude::*;

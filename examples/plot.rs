@@ -1,9 +1,6 @@
 use anyhow::Result;
 use colored::Colorize;
 use missile_sim::prelude::*;
-use plotters::coord::cartesian::Cartesian3d;
-use plotters::coord::types::RangedCoordf64;
-use plotters::prelude::*;
 use rayon::iter::ParallelIterator;
 use rayon::prelude::IntoParallelRefIterator;
 use std::path::{Path, PathBuf};
@@ -350,27 +347,5 @@ pub fn plot_projection<P: AsRef<Path>>(
     }
 
     root.present()?;
-    Ok(())
-}
-
-#[allow(unused)]
-/// Draw a simple filled circle marker
-fn draw_marker(
-    chart: &mut ChartContext<
-        '_,
-        BitMapBackend,
-        Cartesian3d<RangedCoordf64, RangedCoordf64, RangedCoordf64>,
-    >,
-    position: (f64, f64, f64),
-    radius: i32,
-    color: &RGBColor,
-) -> Result<()> {
-    chart.draw_series(PointSeries::of_element(
-        vec![position],
-        radius,
-        ShapeStyle::from(color).filled(),
-        &|c, s, st| EmptyElement::at(c) + Circle::new((0, 0), s, st.filled()),
-    ))?;
-
     Ok(())
 }
